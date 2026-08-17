@@ -981,9 +981,15 @@
             z-index: 1000;
             box-shadow: var(--shadow);
             opacity: 0.9;
+            transition: all 0.3s ease;
         }
         .auto-save-indicator.saved {
             background: var(--success);
+            transform: scale(1.05);
+        }
+        .auto-save-indicator.backup {
+            background: var(--gold);
+            color: var(--primary);
         }
 
         /* ===== GALLERY ===== */
@@ -2251,6 +2257,7 @@
         // ============================================================
         // MS BAG SHOP UNIFIED ENTERPRISE ERP v8.4
         // FIXED: Single localStorage key 'msbag_erp_v8'
+        // AUTO-SAVE & AUTO-BACKUP FULLY ENHANCED
         // ============================================================
 
         // ============================================================
@@ -2262,7 +2269,10 @@
         const ADDRESS = 'Kathmandu, Nepal';
         const PHONE = '+977 1 4223456';
         const EMAIL = 'info@msbagshop.com';
-        const STORAGE_KEY = 'msbag_erp_v8'; // ← FIXED: Single key
+        const STORAGE_KEY = 'msbag_erp_v8';
+        const AUTO_SAVE_INTERVAL = 15000; // 15 seconds
+        const AUTO_BACKUP_INTERVAL = 1800000; // 30 minutes
+        const MAX_AUTO_BACKUPS = 10;
 
         const CATEGORIES = ['School Bag', 'Kids Bag', 'College Bag', 'Ladies Bag', 'Office Bag', 'Travel Bag',
             'Laptop Bag', 'Trolley Bag', 'Hand Bag', 'Wallet', 'Purse', 'Accessories', 'Backpack'
@@ -2312,6 +2322,7 @@
         let currentUser = { name: 'Super Admin', role: 'Owner', permissions: {}, id: 'USR001' };
         let posCart = [];
         let autoSaveTimer;
+        let autoBackupTimer;
         let heldSales = [];
         let editingId = null;
         let priceTagSettings = {
@@ -2387,6 +2398,7 @@
                 } catch (e) { setDefaultData(); }
             } else { setDefaultData(); }
             startAutoSave();
+            startAutoBackup();
             updateNotificationBadge();
             initializeShopInventory();
         }
@@ -2611,9 +2623,9 @@
         }
 
         // ============================================================
-        // SAVE DATA - FIXED: Single storage key
+        // SAVE DATA - ENHANCED WITH AUTO-SAVE
         // ============================================================
-        function saveData() {
+        function saveData(showIndicator = true) {
             try {
                 const data = {
                     products, customers, suppliers, invoices, purchases, purchaseOrders,
@@ -2626,26 +2638,103 @@
                     lastSaved: new Date().toISOString()
                 };
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-                updateAutoSaveIndicator('💾 Auto-Saved');
+                if (showIndicator) {
+                    updateAutoSaveIndicator('💾 Auto-Saved', 'saved');
+                }
                 return true;
-            } catch (e) { 
+            } catch (e) {
                 console.warn('Save failed:', e);
-                return false; 
+                updateAutoSaveIndicator('⚠️ Save Failed', 'error');
+                return false;
             }
         }
 
         function startAutoSave() {
             if (autoSaveTimer) clearInterval(autoSaveTimer);
-            autoSaveTimer = setInterval(() => saveData(), 15000);
+            autoSaveTimer = setInterval(() => {
+                saveData(true);
+            }, AUTO_SAVE_INTERVAL);
         }
 
-        function updateAutoSaveIndicator(msg) {
+        function startAutoBackup() {
+            if (autoBackupTimer) clearInterval(autoBackupTimer);
+            autoBackupTimer = setInterval(() => {
+                createAutoBackup();
+            }, AUTO_BACKUP_INTERVAL);
+        }
+
+        function createAutoBackup() {
+            try {
+                const data = {
+                    products, customers, suppliers, invoices, purchases, purchaseOrders,
+                    productionOrders, shopTransfers, expenses, transactions, stockMovements,
+                    staffMembers, userAccounts, members, galleries, priceHistory,
+                    notifications, settings, shopInventory, auditLogs, esewa, counters,
+                    labelTemplates, printHistory, shops,
+                    chartOfAccounts, journalEntries, payroll, taxRecords,
+                    priceTagSettings,
+                    backupDate: new Date().toISOString()
+                };
+                const json = JSON.stringify(data);
+                const blob = new Blob([json], { type: 'application/json' });
+                const size = (blob.size / 1024).toFixed(2) + ' KB';
+
+                // Keep only last MAX_AUTO_BACKUPS backups
+                if (backups.length >= MAX_AUTO_BACKUPS) {
+                    backups.shift();
+                }
+
+                backups.push({
+                    date: new Date().toISOString(),
+                    size: size,
+                    data: json,
+                    type: 'auto',
+                    createdAt: new Date().toISOString()
+                });
+
+                updateAutoSaveIndicator('📦 Auto-Backup Created', 'backup');
+                addNotification('📦 Automatic backup created', 'success');
+                saveData(false);
+            } catch (e) {
+                console.warn('Auto-backup failed:', e);
+            }
+        }
+
+        function updateAutoSaveIndicator(msg, type = 'saved') {
             const el = document.getElementById('autoSaveIndicator');
-            if (el) { el.textContent = msg;
-                el.classList.add('saved');
-                setTimeout(() => el.classList.remove('saved'), 3000); }
+            if (!el) return;
+            el.textContent = msg;
+            el.className = 'auto-save-indicator ' + type;
+            clearTimeout(el._timeout);
+            el._timeout = setTimeout(() => {
+                el.className = 'auto-save-indicator';
+                el.textContent = '💾 Auto-Saved';
+            }, 3000);
         }
 
+        // ============================================================
+        // WRAPPER: Auto-save after every data change
+        // ============================================================
+        function autoSaveAfterAction() {
+            saveData(true);
+        }
+
+        // Patch all data-modifying functions to auto-save
+        const originalPush = Array.prototype.push;
+        Array.prototype.push = function(...items) {
+            const result = originalPush.apply(this, items);
+            if (this === products || this === customers || this === suppliers ||
+                this === invoices || this === purchases || this === expenses ||
+                this === staffMembers || this === userAccounts || this === members ||
+                this === shops || this === transactions) {
+                autoSaveAfterAction();
+            }
+            return result;
+        };
+
+        // ============================================================
+        // UPDATE NOTIFICATION BADGE
+        // ============================================================
         function updateNotificationBadge() {
             const unread = notifications.filter(n => !n.read).length;
             const badge = document.getElementById('notifBadge');
@@ -2656,7 +2745,7 @@
         function addNotification(msg, type = 'info') {
             notifications.unshift({ id: Date.now(), message: msg, type, time: 'Just now', read: false });
             updateNotificationBadge();
-            saveData();
+            saveData(false);
         }
 
         function showNotifications() {
@@ -2689,7 +2778,7 @@
         function clearAllNotifications() {
             notifications = [];
             updateNotificationBadge();
-            saveData();
+            saveData(false);
             showNotifications();
             showToast('🗑️ All notifications cleared', 'success');
         }
@@ -2698,7 +2787,7 @@
             const n = notifications.find(notif => notif.id === id);
             if (n) { n.read = true;
                 updateNotificationBadge();
-                saveData();
+                saveData(false);
                 showNotifications(); }
         }
 
@@ -2710,7 +2799,7 @@
                 action: action,
                 details: details
             });
-            saveData();
+            saveData(false);
         }
 
         // ============================================================
@@ -2992,7 +3081,7 @@
                 createdAt: new Date().toISOString()
             };
             journalEntries.push(entry);
-            saveData();
+            saveData(false);
             return entry;
         }
 
@@ -3632,6 +3721,7 @@
             posSelectCustomer(c.id);
             showToast('✅ New customer created', 'success');
             logAudit('CREATE_CUSTOMER', `Customer ${name} created`);
+            saveData(true);
         }
 
         function posSearchProduct() {
@@ -3818,7 +3908,7 @@
             posUpdateCart();
             showToast(`✅ Invoice ${inv.invoiceNumber} completed!`, 'success');
             renderInvoices();
-            saveData();
+            saveData(true);
         }
 
         function posPrintInvoice() {
@@ -4418,7 +4508,7 @@ td{padding:6px 10px;border-bottom:1px solid #eee;}
             showToast(`✅ Product ${data.name} saved`, 'success');
             logAudit('PRODUCT', `${id?'Updated':'Added'} product ${data.name}`);
             renderProducts();
-            saveData();
+            saveData(true);
         }
 
         function editProduct(id) {
@@ -4434,7 +4524,7 @@ td{padding:6px 10px;border-bottom:1px solid #eee;}
             showToast(`🗑️ Product ${p?.name||''} deleted`, 'warning');
             logAudit('DELETE_PRODUCT', `Deleted product ${p?.name||id}`);
             renderProducts();
-            saveData();
+            saveData(true);
         }
 
         function exportProducts() {
@@ -4517,7 +4607,7 @@ td{padding:6px 10px;border-bottom:1px solid #eee;}
                         });
                         showToast(`✅ ${data.length} products imported`, 'success');
                         renderProducts();
-                        saveData();
+                        saveData(true);
                     } catch (err) { showToast('Import failed: ' + err.message, 'error'); }
                 };
                 reader.readAsArrayBuffer(file);
@@ -4604,7 +4694,7 @@ td{padding:6px 10px;border-bottom:1px solid #eee;}
             logAudit('BULK_PRICE', `Bulk ${operation} ${priceType} by ${value}% for ${updated} products`);
             closeModal();
             renderPricing();
-            saveData();
+            saveData(true);
         }
 
         // ============================================================
@@ -4723,7 +4813,7 @@ td{padding:6px 10px;border-bottom:1px solid #eee;}
                     closeModal();
                     showToast('✅ Image added', 'success');
                     renderGallery();
-                    saveData();
+                    saveData(true);
                 };
                 reader.readAsDataURL(fileInput.files[0]);
             } else {
@@ -4732,14 +4822,14 @@ td{padding:6px 10px;border-bottom:1px solid #eee;}
                 closeModal();
                 showToast('✅ Image added', 'success');
                 renderGallery();
-                saveData();
+                saveData(true);
             }
         }
 
         function removeGallery(id) {
             galleries = galleries.filter(g => g.id !== id);
             renderGallery();
-            saveData();
+            saveData(true);
         }
 
         // ============================================================
@@ -5036,7 +5126,7 @@ td{padding:6px 10px;border-bottom:1px solid #eee;}
             showToast(`🏪 Shop ${data.shopName} saved`, 'success');
             logAudit('SHOP', `${id?'Updated':'Added'} shop ${data.shopName}`);
             renderShops();
-            saveData();
+            saveData(true);
         }
 
         function editShop(id) {
@@ -5051,7 +5141,7 @@ td{padding:6px 10px;border-bottom:1px solid #eee;}
             showToast(`🗑️ Shop ${s?.shopName||''} deleted`, 'warning');
             logAudit('DELETE_SHOP', `Deleted shop ${s?.shopName||id}`);
             renderShops();
-            saveData();
+            saveData(true);
         }
 
         // ============================================================
@@ -5165,7 +5255,7 @@ td{padding:6px 10px;border-bottom:1px solid #eee;}
             showToast(`📥 Purchase ${po.poNumber} saved`, 'success');
             logAudit('PURCHASE', `Purchase ${po.poNumber} from ${supplierName} for ${CURRENCY} ${total}`);
             renderPurchases();
-            saveData();
+            saveData(true);
         }
 
         function viewPurchase(id) {
@@ -5274,7 +5364,7 @@ td{padding:6px 10px;border-bottom:1px solid #eee;}
             showToast(`🏭 Supplier ${data.supplierName} saved`, 'success');
             logAudit('SUPPLIER', `${id?'Updated':'Added'} supplier ${data.supplierName}`);
             renderSuppliers();
-            saveData();
+            saveData(true);
         }
 
         function editSupplier(id) {
@@ -5350,7 +5440,7 @@ td{padding:6px 10px;border-bottom:1px solid #eee;}
             showToast(`🏗️ Production order for ${product.name} x${qty} started`, 'success');
             logAudit('PRODUCTION', `Production order for ${product.name} x${qty}`);
             renderManufacturing();
-            saveData();
+            saveData(true);
         }
 
         function viewProduction(id) {
@@ -5374,7 +5464,7 @@ td{padding:6px 10px;border-bottom:1px solid #eee;}
                 showToast('✅ Production completed', 'success');
                 logAudit('PRODUCTION', `Completed production ${po.orderNumber}`);
                 renderManufacturing();
-                saveData();
+                saveData(true);
                 closeModal();
             }
         }
@@ -5472,7 +5562,7 @@ td{padding:6px 10px;border-bottom:1px solid #eee;}
             showToast(`🚚 Transfer from ${from} to ${to} created`, 'success');
             logAudit('TRANSFER', `Stock transfer ${transfer.transferNumber} from ${from} to ${to} (${product.name} x${qty})`);
             renderTransfers();
-            saveData();
+            saveData(true);
         }
 
         // ============================================================
@@ -5572,7 +5662,7 @@ td{padding:6px 10px;border-bottom:1px solid #eee;}
             showToast(`👤 Customer ${data.fullName} saved`, 'success');
             logAudit('CUSTOMER', `${id?'Updated':'Added'} customer ${data.fullName}`);
             renderCustomers();
-            saveData();
+            saveData(true);
         }
 
         function editCustomer(id) {
@@ -5677,7 +5767,7 @@ td{padding:6px 10px;border-bottom:1px solid #eee;}
             showToast(`⭐ Member ${data.fullName} saved`, 'success');
             logAudit('MEMBER', `${id?'Updated':'Added'} member ${data.fullName}`);
             renderMembership();
-            saveData();
+            saveData(true);
         }
 
         function editMember(id) {
@@ -5765,7 +5855,7 @@ td{padding:6px 10px;border-bottom:1px solid #eee;}
             showToast(`💸 Expense ${data.category} - ${CURRENCY} ${data.amount} saved`, 'success');
             logAudit('EXPENSE', `Expense ${data.category} - ${CURRENCY} ${data.amount}`);
             renderExpenses();
-            saveData();
+            saveData(true);
         }
 
         function deleteExpense(id) {
@@ -5773,7 +5863,7 @@ td{padding:6px 10px;border-bottom:1px solid #eee;}
             expenses = expenses.filter(e => e.id !== id);
             showToast('🗑️ Expense deleted', 'warning');
             renderExpenses();
-            saveData();
+            saveData(true);
         }
 
         // ============================================================
@@ -5850,7 +5940,7 @@ td{padding:6px 10px;border-bottom:1px solid #eee;}
             showToast(`📱 eSewa ${type} of ${CURRENCY} ${amount} completed`, 'success');
             logAudit('ESEWA', `eSewa ${type} ${CURRENCY} ${amount} - ${desc}`);
             renderFinance();
-            saveData();
+            saveData(true);
         }
 
         function exportFinance() {
@@ -6126,7 +6216,7 @@ td{padding:6px 10px;border-bottom:1px solid #eee;}
                 logAudit('STAFF', `Added staff ${data.name}`);
             }
             renderStaff();
-            saveData();
+            saveData(true);
         }
 
         function editStaff(id) {
@@ -6142,7 +6232,7 @@ td{padding:6px 10px;border-bottom:1px solid #eee;}
             showToast(`🗑️ Staff ${s?.name||''} deleted`, 'warning');
             logAudit('DELETE_STAFF', `Deleted staff ${s?.name||id}`);
             renderStaff();
-            saveData();
+            saveData(true);
         }
 
         // ============================================================
@@ -6194,7 +6284,7 @@ td{padding:6px 10px;border-bottom:1px solid #eee;}
             showToast('💾 Backup created successfully', 'success');
             logAudit('BACKUP', 'Created backup');
             renderBackup();
-            saveData();
+            saveData(true);
         }
 
         function restoreBackup() {
@@ -6214,7 +6304,7 @@ td{padding:6px 10px;border-bottom:1px solid #eee;}
                         showToast('📂 Backup restored successfully', 'success');
                         logAudit('RESTORE', 'Restored from backup');
                         navigateTo('dashboard');
-                        saveData();
+                        saveData(true);
                     } catch (err) { showToast('Restore failed: ' + err.message, 'error'); }
                 };
                 reader.readAsText(file);
@@ -6237,7 +6327,7 @@ td{padding:6px 10px;border-bottom:1px solid #eee;}
             backups.splice(idx, 1);
             showToast('🗑️ Backup deleted', 'warning');
             renderBackup();
-            saveData();
+            saveData(true);
         }
 
         function clearData() {
@@ -6293,7 +6383,7 @@ td{padding:6px 10px;border-bottom:1px solid #eee;}
             settings.receiptFooter = document.getElementById('setFooter').value.trim();
             showToast('⚙️ Settings saved', 'success');
             logAudit('SETTINGS', 'Updated system settings');
-            saveData();
+            saveData(true);
         }
 
         // ============================================================
@@ -6378,7 +6468,7 @@ td{padding:6px 10px;border-bottom:1px solid #eee;}
             showToast(`📂 Account ${data.name} saved`, 'success');
             logAudit('COA', `${id?'Updated':'Added'} account ${data.name}`);
             renderCOA();
-            saveData();
+            saveData(true);
         }
 
         function deleteAccount(id) {
@@ -6386,7 +6476,7 @@ td{padding:6px 10px;border-bottom:1px solid #eee;}
             chartOfAccounts = chartOfAccounts.filter(a => a.id !== id);
             showToast('🗑️ Account deleted', 'warning');
             renderCOA();
-            saveData();
+            saveData(true);
         }
 
         function renderSalesAccounting() {
@@ -6515,7 +6605,7 @@ td{padding:6px 10px;border-bottom:1px solid #eee;}
             closeModal();
             showToast(`💰 Cash ${type} recorded`, 'success');
             renderCashBank();
-            saveData();
+            saveData(true);
         }
 
         function openBankEntryModal() {
@@ -6557,7 +6647,7 @@ td{padding:6px 10px;border-bottom:1px solid #eee;}
             closeModal();
             showToast(`🏦 Bank ${type} recorded`, 'success');
             renderCashBank();
-            saveData();
+            saveData(true);
         }
 
         // ============================================================
@@ -6641,7 +6731,7 @@ td{padding:6px 10px;border-bottom:1px solid #eee;}
             showToast(`👔 Payroll for ${employeeName} saved`, 'success');
             logAudit('PAYROLL', `Payroll for ${employeeName} - ${month}`);
             renderPayrollModule();
-            saveData();
+            saveData(true);
         }
 
         function deletePayroll(id) {
@@ -6649,7 +6739,7 @@ td{padding:6px 10px;border-bottom:1px solid #eee;}
             payroll = payroll.filter(p => p.id !== id);
             showToast('🗑️ Payroll record deleted', 'warning');
             renderPayrollModule();
-            saveData();
+            saveData(true);
         }
 
         // ============================================================
@@ -6706,7 +6796,7 @@ td{padding:6px 10px;border-bottom:1px solid #eee;}
                     }
                 });
                 showToast('📊 Tax report generated from invoices', 'success');
-                saveData();
+                saveData(true);
             }
             renderTaxModule();
         }
@@ -7865,7 +7955,7 @@ td{padding:6px 10px;border-bottom:1px solid #eee;}
             showToast(`✅ Prices updated for ${product.name}`, 'success');
             logAudit('PRICE_EDIT', `Updated prices for ${product.name}`);
             renderPriceTagMaster();
-            saveData();
+            saveData(true);
         }
 
         // ============================================================
