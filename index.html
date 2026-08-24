@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -2257,8 +2256,7 @@
     <script>
         // ============================================================
         // MS BAG SHOP UNIFIED ENTERPRISE ERP v8.4
-        // FIXED: Single localStorage key 'msbag_erp_v8'
-        // AUTO-SAVE & AUTO-BACKUP FULLY ENHANCED
+        // COMPLETE SINGLE-FILE VERSION
         // ============================================================
 
         // ============================================================
@@ -2358,7 +2356,7 @@
         }
 
         // ============================================================
-        // INIT DATA - FIXED: Single storage key
+        // INIT DATA - SINGLE STORAGE KEY
         // ============================================================
         function initData() {
             const stored = localStorage.getItem(STORAGE_KEY);
@@ -2406,28 +2404,36 @@
 
         function getDefaultCOA() {
             return [
+                // Assets
                 { id: 'A1', code: '1010', name: 'Cash', type: 'Asset', normalBalance: 'Debit' },
                 { id: 'A2', code: '1020', name: 'Bank', type: 'Asset', normalBalance: 'Debit' },
                 { id: 'A3', code: '1030', name: 'Inventory', type: 'Asset', normalBalance: 'Debit' },
                 { id: 'A4', code: '1040', name: 'Equipment', type: 'Asset', normalBalance: 'Debit' },
                 { id: 'A5', code: '1050', name: 'Furniture', type: 'Asset', normalBalance: 'Debit' },
                 { id: 'A6', code: '1060', name: 'Shop Assets', type: 'Asset', normalBalance: 'Debit' },
+                { id: 'A7', code: '1070', name: 'Customer Receivable', type: 'Asset', normalBalance: 'Debit' },
+                // Liabilities
                 { id: 'L1', code: '2010', name: 'Supplier Payable', type: 'Liability', normalBalance: 'Credit' },
                 { id: 'L2', code: '2020', name: 'Business Loan', type: 'Liability', normalBalance: 'Credit' },
                 { id: 'L3', code: '2030', name: 'Tax Payable', type: 'Liability', normalBalance: 'Credit' },
+                // Equity
+                { id: 'E1', code: '3010', name: 'Owner\'s Equity', type: 'Equity', normalBalance: 'Credit' },
+                { id: 'E2', code: '3020', name: 'Retained Earnings', type: 'Equity', normalBalance: 'Credit' },
+                // Income
                 { id: 'I1', code: '4010', name: 'Product Sales', type: 'Income', normalBalance: 'Credit' },
                 { id: 'I2', code: '4020', name: 'Wholesale Sales', type: 'Income', normalBalance: 'Credit' },
                 { id: 'I3', code: '4030', name: 'Online Sales', type: 'Income', normalBalance: 'Credit' },
                 { id: 'I4', code: '4040', name: 'Other Income', type: 'Income', normalBalance: 'Credit' },
-                { id: 'E1', code: '5010', name: 'Rent', type: 'Expense', normalBalance: 'Debit' },
-                { id: 'E2', code: '5020', name: 'Salary', type: 'Expense', normalBalance: 'Debit' },
-                { id: 'E3', code: '5030', name: 'Electricity', type: 'Expense', normalBalance: 'Debit' },
-                { id: 'E4', code: '5040', name: 'Internet', type: 'Expense', normalBalance: 'Debit' },
-                { id: 'E5', code: '5050', name: 'Transport', type: 'Expense', normalBalance: 'Debit' },
-                { id: 'E6', code: '5060', name: 'Marketing', type: 'Expense', normalBalance: 'Debit' },
-                { id: 'E7', code: '5070', name: 'Packaging', type: 'Expense', normalBalance: 'Debit' },
-                { id: 'E8', code: '5080', name: 'Maintenance', type: 'Expense', normalBalance: 'Debit' },
-                { id: 'E9', code: '5090', name: 'Other Expenses', type: 'Expense', normalBalance: 'Debit' },
+                // Expenses
+                { id: 'EX1', code: '5010', name: 'Rent', type: 'Expense', normalBalance: 'Debit' },
+                { id: 'EX2', code: '5020', name: 'Salary', type: 'Expense', normalBalance: 'Debit' },
+                { id: 'EX3', code: '5030', name: 'Electricity', type: 'Expense', normalBalance: 'Debit' },
+                { id: 'EX4', code: '5040', name: 'Internet', type: 'Expense', normalBalance: 'Debit' },
+                { id: 'EX5', code: '5050', name: 'Transport', type: 'Expense', normalBalance: 'Debit' },
+                { id: 'EX6', code: '5060', name: 'Marketing', type: 'Expense', normalBalance: 'Debit' },
+                { id: 'EX7', code: '5070', name: 'Packaging', type: 'Expense', normalBalance: 'Debit' },
+                { id: 'EX8', code: '5080', name: 'Maintenance', type: 'Expense', normalBalance: 'Debit' },
+                { id: 'EX9', code: '5090', name: 'Other Expenses', type: 'Expense', normalBalance: 'Debit' },
             ];
         }
 
@@ -2624,7 +2630,7 @@
         }
 
         // ============================================================
-        // SAVE DATA - ENHANCED WITH AUTO-SAVE
+        // SAVE DATA
         // ============================================================
         function saveData(showIndicator = true) {
             try {
@@ -2680,7 +2686,6 @@
                 const blob = new Blob([json], { type: 'application/json' });
                 const size = (blob.size / 1024).toFixed(2) + ' KB';
 
-                // Keep only last MAX_AUTO_BACKUPS backups
                 if (backups.length >= MAX_AUTO_BACKUPS) {
                     backups.shift();
                 }
@@ -2713,28 +2718,12 @@
             }, 3000);
         }
 
-        // ============================================================
-        // WRAPPER: Auto-save after every data change
-        // ============================================================
         function autoSaveAfterAction() {
             saveData(true);
         }
 
-        // Patch all data-modifying functions to auto-save
-        const originalPush = Array.prototype.push;
-        Array.prototype.push = function(...items) {
-            const result = originalPush.apply(this, items);
-            if (this === products || this === customers || this === suppliers ||
-                this === invoices || this === purchases || this === expenses ||
-                this === staffMembers || this === userAccounts || this === members ||
-                this === shops || this === transactions) {
-                autoSaveAfterAction();
-            }
-            return result;
-        };
-
         // ============================================================
-        // UPDATE NOTIFICATION BADGE
+        // NOTIFICATIONS
         // ============================================================
         function updateNotificationBadge() {
             const unread = notifications.filter(n => !n.read).length;
@@ -2820,8 +2809,6 @@
         function canExport(m) { return hasPermission(m, 'export'); }
         function canPrint(m) { return hasPermission(m, 'print'); }
         function canDiscount(m) { return hasPermission(m, 'discount'); }
-        function canManageUsers(m) { return hasPermission(m, 'manageUsers') || currentUser.role === 'Owner' || currentUser.role === 'Admin'; }
-        function canApprove(m) { return hasPermission(m, 'approve') || currentUser.role === 'Owner' || currentUser.role === 'Admin' || currentUser.role === 'Manager'; }
 
         // ============================================================
         // AUTH - LOGIN
@@ -3069,7 +3056,7 @@
         }
 
         // ============================================================
-        // ACCOUNTING ENGINE
+        // ACCOUNTING ENGINE - Enhanced
         // ============================================================
         function postJournalEntry(date, description, reference, lines, shop = 'All') {
             const entry = {
@@ -3154,6 +3141,7 @@
             return { revenue, cogs, expenses, grossProfit, netProfit };
         }
 
+        // Enhanced Balance Sheet with Equity accounts
         function getBalanceSheet(shop = null) {
             let assets = 0,
                 liabilities = 0,
@@ -3163,18 +3151,25 @@
             trial.forEach(item => {
                 const acc = item.account;
                 const balance = acc.normalBalance === 'Debit' ? item.debit : item.credit;
-                if (acc.type === 'Asset') assets += balance;
-                else if (acc.type === 'Liability') liabilities += balance;
+                if (acc.type === 'Asset') {
+                    assets += balance;
+                } else if (acc.type === 'Liability') {
+                    liabilities += balance;
+                } else if (acc.type === 'Equity') {
+                    equity += balance;
+                }
             });
 
+            // Add net profit/loss to equity
             const pnl = getProfitAndLoss('all', shop);
-            equity = pnl.netProfit;
+            equity += pnl.netProfit;
 
             return { assets, liabilities, equity };
         }
 
         function integrateSale(invoice) {
             const lines = [];
+            // Debit Cash/Bank or Receivable
             if (invoice.paymentMethod === 'Cash' || invoice.paymentMethod === 'eSewa' || invoice.paymentMethod === 'Bank Transfer') {
                 const cashAcc = chartOfAccounts.find(a => a.name === 'Cash' || a.name === 'Bank');
                 if (cashAcc) lines.push({ accountId: cashAcc.id, debit: invoice.grandTotal, credit: 0 });
@@ -3189,8 +3184,10 @@
                     lines.push({ accountId: recAcc.id, debit: invoice.grandTotal, credit: 0 });
                 }
             }
+            // Credit Sales Revenue
             const revAcc = chartOfAccounts.find(a => a.name === 'Product Sales');
             if (revAcc) lines.push({ accountId: revAcc.id, debit: 0, credit: invoice.grandTotal });
+            // Credit Tax Payable
             if (invoice.tax > 0) {
                 const taxAcc = chartOfAccounts.find(a => a.name === 'Tax Payable');
                 if (taxAcc) lines.push({ accountId: taxAcc.id, debit: 0, credit: invoice.tax });
@@ -3324,53 +3321,146 @@
             }
 
             switch (section) {
-                case 'dashboard': renderDashboard(); break;
-                case 'search': renderSearch(); break;
-                case 'pos': renderPOS(); break;
-                case 'invoices': renderInvoices(); break;
-                case 'products': renderProducts(); break;
-                case 'pricing': renderPricing(); break;
-                case 'inventory': renderInventory(); break;
-                case 'gallery': renderGallery(); break;
-                case 'printStudio': renderPrintStudio(); break;
-                case 'priceLabels': renderPriceLabels(); break;
-                case 'shops': renderShops(); break;
-                case 'purchases': renderPurchases(); break;
-                case 'suppliers': renderSuppliers(); break;
-                case 'manufacturing': renderManufacturing(); break;
-                case 'transfers': renderTransfers(); break;
-                case 'customers': renderCustomers(); break;
-                case 'membership': renderMembership(); break;
-                case 'expenses': renderExpenses(); break;
-                case 'finance': renderFinance(); break;
-                case 'reports': renderReports(); break;
-                case 'staff': renderStaff(); break;
-                case 'backup': renderBackup(); break;
-                case 'settings': renderSettings(); break;
-                case 'coa': renderCOA(); break;
-                case 'salesAccounting': renderSalesAccounting(); break;
-                case 'purchaseAccounting': renderPurchaseAccounting(); break;
-                case 'cashbank': renderCashBank(); break;
-                case 'payroll': renderPayrollModule(); break;
-                case 'tax': renderTaxModule(); break;
-                case 'pnl': renderPnLModule(); break;
-                case 'reportsDashboard': renderReportsDashboard(); break;
-                case 'salesReports': renderSalesReports(); break;
-                case 'inventoryReports': renderInventoryReports(); break;
-                case 'purchaseReports': renderPurchaseReports(); break;
-                case 'transferReports': renderTransferReports(); break;
-                case 'customerReports': renderCustomerReports(); break;
-                case 'supplierReports': renderSupplierReports(); break;
-                case 'financeReports': renderFinanceReports(); break;
-                case 'branchReports': renderBranchReports(); break;
-                case 'staffReports': renderStaffReports(); break;
-                case 'manufacturingReports': renderManufacturingReports(); break;
-                case 'businessAnalytics': renderBusinessAnalytics(); break;
-                case 'auditReports': renderAuditReports(); break;
-                case 'priceTags': renderPriceTagMaster(); break;
-                case 'printTags': renderPrintTags(); break;
-                case 'priceReports': renderPriceReports(); break;
-                default: renderDashboard();
+                case 'dashboard':
+                    renderDashboard();
+                    break;
+                case 'search':
+                    renderSearch();
+                    break;
+                case 'pos':
+                    renderPOS();
+                    break;
+                case 'invoices':
+                    renderInvoices();
+                    break;
+                case 'products':
+                    renderProducts();
+                    break;
+                case 'pricing':
+                    renderPricing();
+                    break;
+                case 'inventory':
+                    renderInventory();
+                    break;
+                case 'gallery':
+                    renderGallery();
+                    break;
+                case 'printStudio':
+                    renderPrintStudio();
+                    break;
+                case 'priceLabels':
+                    renderPriceLabels();
+                    break;
+                case 'shops':
+                    renderShops();
+                    break;
+                case 'purchases':
+                    renderPurchases();
+                    break;
+                case 'suppliers':
+                    renderSuppliers();
+                    break;
+                case 'manufacturing':
+                    renderManufacturing();
+                    break;
+                case 'transfers':
+                    renderTransfers();
+                    break;
+                case 'customers':
+                    renderCustomers();
+                    break;
+                case 'membership':
+                    renderMembership();
+                    break;
+                case 'expenses':
+                    renderExpenses();
+                    break;
+                case 'finance':
+                    renderFinance();
+                    break;
+                case 'reports':
+                    renderReports();
+                    break;
+                case 'staff':
+                    renderStaff();
+                    break;
+                case 'backup':
+                    renderBackup();
+                    break;
+                case 'settings':
+                    renderSettings();
+                    break;
+                case 'coa':
+                    renderCOA();
+                    break;
+                case 'salesAccounting':
+                    renderSalesAccounting();
+                    break;
+                case 'purchaseAccounting':
+                    renderPurchaseAccounting();
+                    break;
+                case 'cashbank':
+                    renderCashBank();
+                    break;
+                case 'payroll':
+                    renderPayrollModule();
+                    break;
+                case 'tax':
+                    renderTaxModule();
+                    break;
+                case 'pnl':
+                    renderPnLModule();
+                    break;
+                case 'reportsDashboard':
+                    renderReportsDashboard();
+                    break;
+                case 'salesReports':
+                    renderSalesReports();
+                    break;
+                case 'inventoryReports':
+                    renderInventoryReports();
+                    break;
+                case 'purchaseReports':
+                    renderPurchaseReports();
+                    break;
+                case 'transferReports':
+                    renderTransferReports();
+                    break;
+                case 'customerReports':
+                    renderCustomerReports();
+                    break;
+                case 'supplierReports':
+                    renderSupplierReports();
+                    break;
+                case 'financeReports':
+                    renderFinanceReports();
+                    break;
+                case 'branchReports':
+                    renderBranchReports();
+                    break;
+                case 'staffReports':
+                    renderStaffReports();
+                    break;
+                case 'manufacturingReports':
+                    renderManufacturingReports();
+                    break;
+                case 'businessAnalytics':
+                    renderBusinessAnalytics();
+                    break;
+                case 'auditReports':
+                    renderAuditReports();
+                    break;
+                case 'priceTags':
+                    renderPriceTagMaster();
+                    break;
+                case 'printTags':
+                    renderPrintTags();
+                    break;
+                case 'priceReports':
+                    renderPriceReports();
+                    break;
+                default:
+                    renderDashboard();
             }
         }
 
@@ -3676,7 +3766,7 @@
             posUpdateCart();
         }
 
-        // POS Functions (simplified for brevity - full functions from original)
+        // POS Functions
         function posSearchCustomer() {
             const query = document.getElementById('posCustomer').value.trim();
             const results = document.getElementById('posCustomerResults');
@@ -6388,7 +6478,7 @@ td{padding:6px 10px;border-bottom:1px solid #eee;}
         }
 
         // ============================================================
-        // ACCOUNTING MODULES (Simplified)
+        // ACCOUNTING MODULES
         // ============================================================
         function renderCOA() {
             if (!canView('coa')) { showToast('⛔ Access Denied', 'error'); return; }
@@ -6433,7 +6523,8 @@ td{padding:6px 10px;border-bottom:1px solid #eee;}
                         <select id="accType"><option value="Asset" ${a.type==='Asset'?'selected':''}>Asset</option>
                             <option value="Liability" ${a.type==='Liability'?'selected':''}>Liability</option>
                             <option value="Income" ${a.type==='Income'?'selected':''}>Income</option>
-                            <option value="Expense" ${a.type==='Expense'?'selected':''}>Expense</option></select>
+                            <option value="Expense" ${a.type==='Expense'?'selected':''}>Expense</option>
+                            <option value="Equity" ${a.type==='Equity'?'selected':''}>Equity</option></select>
                     </div>
                 </div>
                 <div class="form-row-3">
