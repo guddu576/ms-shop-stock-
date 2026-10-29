@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>MS Bag Shop ERP</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{--bg:#f1f5f9;--card:#fff;--ink:#0f172a;--mut:#64748b;--line:#e2e8f0;--acc:#0a1628;--gold:#d4a843;--ok:#059669;--bad:#dc2626;--warn:#d97706;--side:#0a1628}
+body.dark{--bg:#0b1020;--card:#151d33;--ink:#e2e8f0;--mut:#94a3b8;--line:#263247;--acc:#1a3050}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+.hidden{display:none!important}
+h3{margin:0 0 10px;font-size:15px}
+.mut{color:var(--mut);font-size:12px}
+input,select,textarea{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font:inherit}
+label{display:block;font-size:11px;color:var(--mut);font-weight:600;margin:0 0 4px;text-transform:uppercase;letter-spacing:.3px}
+.field{margin-bottom:12px}
+.fg{display:grid;gap:0 12px;grid-template-columns:1fr}
+@media(min-width:700px){.fg{grid-template-columns:1fr 1fr}}
+.btn{border:0;border-radius:10px;padding:9px 14px;font:600 13px system-ui;cursor:pointer;background:var(--line);color:var(--ink)}
+.btn.p{background:var(--acc);color:#fff}.btn.g{background:var(--ok);color:#fff}.btn.d{background:var(--bad);color:#fff}
+.btn.s{padding:4px 8px;font-size:12px}.btn:disabled{opacity:.5;cursor:not-allowed}
+.acts{display:flex;justify-content:flex-end;gap:8px;margin-top:14px;flex-wrap:wrap}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:16px}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));margin-bottom:16px}
+.grid2{display:grid;gap:16px;grid-template-columns:1fr}
+@media(min-width:900px){.grid2{grid-template-columns:1fr 1fr}}
+.kpi .v{font-size:20px;font-weight:700;margin-top:6px}
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:12px;margin-bottom:8px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{font-size:11px;text-transform:uppercase;color:var(--mut);background:var(--bg);text-align:left;padding:8px;white-space:nowrap}
+td{padding:8px;border-top:1px solid var(--line);vertical-align:top}
+.r{text-align:right}
+.b{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600;background:#e2e8f0;color:#334155}
+.b.ok{background:#d1fae5;color:#065f46}.b.warn{background:#fef3c7;color:#92400e}.b.bad{background:#fee2e2;color:#991b1b}
+.pos{display:grid;gap:16px}
+@media(min-width:1000px){.pos{grid-template-columns:1.2fr 1fr;align-items:start}}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.tile{display:flex;flex-direction:column;gap:4px;align-items:flex-start;text-align:left;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px;cursor:pointer;color:var(--ink);font:inherit}
+.tile:disabled{opacity:.45;cursor:not-allowed}
+.totals{margin-top:10px;border-top:1px dashed var(--line);padding-top:8px}
+.totals div{display:flex;justify-content:space-between;padding:3px 0}
+.grand{font-size:18px;font-weight:700;border-top:2px solid var(--ink);margin-top:6px;padding-top:6px}
+.calcbox{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px;margin:8px 0;font-size:13px;display:grid;gap:4px}
+.warn{color:#b45309;font-weight:600}
+.pimg{max-width:160px;max-height:160px;border-radius:12px;display:none;margin:8px auto}
+/* login */
+#login{min-height:100vh;display:grid;place-items:center;background:linear-gradient(135deg,#0a1628,#1a3050);padding:20px}
+.loginCard{background:var(--card);padding:28px;border-radius:16px;width:100%;max-width:380px}
+.loginCard h1{margin:0 0 4px;font-size:24px;text-align:center}
+.loginCard p{color:var(--mut);text-align:center;margin:0 0 18px;font-size:12px}
+.err{color:var(--bad);text-align:center;margin-top:10px;font-size:13px}
+/* shell */
+.sidebar{position:fixed;top:0;bottom:0;left:0;width:240px;background:var(--side);color:#cbd5e1;overflow-y:auto;padding:14px 10px;z-index:50;transform:translateX(-100%);transition:transform .25s}
+#app.open .sidebar{transform:none}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;z-index:40}
+.overlay.show{display:block}
+.brand{color:#fff;font-weight:700;font-size:17px;padding:6px 10px 10px}
+.brand span{color:var(--gold)}
+.who{font-size:11px;padding:0 10px 10px;color:#94a3b8;border-bottom:1px solid #1e293b;margin-bottom:6px}
+.grp{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#64748b;padding:10px 10px 4px}
+.nv{display:block;width:100%;text-align:left;background:none;border:0;color:#cbd5e1;padding:9px 12px;border-radius:10px;cursor:pointer;font:inherit;font-size:13px}
+.nv:hover{background:#1e293b}.nv.on{background:var(--gold);color:#0a1628;font-weight:600}
+.nv.out{color:#f87171;margin-top:10px}
+.topbar{position:fixed;top:0;left:0;right:0;height:56px;background:var(--side);color:#fff;display:flex;align-items:center;gap:8px;padding:0 12px;z-index:30}
+.topbar .grow{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:15px}
+.topbar .btn{background:rgba(255,255,255,.12);color:#fff}
+.shopSel{width:auto;max-width:140px;padding:6px 8px;font-size:12px}
+main{padding:72px 12px 90px;max-width:1280px;margin:auto}
+.bottombar{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--line);display:flex;padding:4px 0 calc(4px + env(safe-area-inset-bottom,0px));z-index:30}
+.bottombar button{flex:1;background:none;border:0;color:var(--mut);font:600 11px system-ui;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 0;cursor:pointer}
+.bottombar button .ic{font-size:18px}
+.bottombar button.on{color:var(--acc)}
+body.dark .bottombar button.on{color:var(--gold)}
+@media(min-width:900px){
+  .sidebar{transform:none}
+  .topbar{left:240px}
+  main{margin-left:240px;padding:76px 24px 24px}
+  .bottombar{display:none}
+  .hb{display:none}
+  .overlay{display:none!important}
+}
+/* modal */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:flex-end;justify-content:center;z-index:100}
+.modal.show{display:flex}
+.mbox{background:var(--card);width:100%;max-width:760px;max-height:92vh;overflow:auto;border-radius:18px 18px 0 0;padding:16px}
+@media(min-width:700px){.modal{align-items:center}.mbox{border-radius:18px}}
+.mhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-size:16px;font-weight:700}
+.toast{position:fixed;left:50%;bottom:84px;transform:translateX(-50%);background:var(--side);color:#fff;padding:10px 18px;border-radius:12px;opacity:0;pointer-events:none;transition:opacity .25s;z-index:200;max-width:90vw;text-align:center}
+.toast.show{opacity:1}
+@media(min-width:900px){.toast{bottom:24px}}
+#printArea{background:#fff;color:#000;padding:12px;border-radius:8px}
+.sheet{display:grid;gap:4px}
+.lab{border:1px dashed #888;padding:6px;text-align:center;color:#000;font-size:11px;break-inside:avoid;background:#fff}
+@media print{.modal{position:static!important;display:block!important;background:none!important}.mbox{max-height:none!important;overflow:visible!important}}
+@media print{
+  body *{visibility:hidden}
+  #printArea,#printArea *{visibility:visible}
+  #printArea{position:absolute;left:0;top:0;width:100%}
+}
+</style>
+</head>
+<body>
+
+<div id="login">
+  <div class="loginCard">
+    <h1>👜 MS Bag Shop</h1>
+    <p>Enterprise ERP · Retail · Warehouse · Finance</p>
+    <div class="field"><label>Username</label><input id="lu" value="owner"></div>
+    <div class="field"><label>Password</label><input id="lp" type="password" value="admin123" onkeydown="if(event.key==='Enter')login()"></div>
+    <button class="btn p" style="width:100%;padding:12px" onclick="login()">Login</button>
+    <div id="lerr" class="err"></div>
+  </div>
+</div>
+
+<div id="app" class="hidden">
+  <div class="overlay" id="ov" onclick="toggleNav(false)"></div>
+  <aside class="sidebar" id="sb"></aside>
+  <header class="topbar">
+    <button class="btn s hb" onclick="toggleNav()">☰</button>
+    <div class="grow" id="ptitle"></div>
+    <select class="shopSel" id="shopSel" onchange="setShop(this.value)"></select>
+    <button class="btn s" onclick="toggleDark()">🌙</button>
+  </header>
+  <main id="main"></main>
+  <nav class="bottombar" id="bb"></nav>
+</div>
+
+<div id="modal" class="modal" onclick="if(event.target===this)closeModal()">
+  <div class="mbox">
+    <div class="mhead"><span id="mt"></span><button class="btn s" onclick="closeModal()">✕</button></div>
+    <div id="mb"></div>
+  </div>
+</div>
+<div id="toast" class="toast"></div>
+
+<script>
+/* ================= CONSTANTS & HELPERS ================= */
+const KEY='msbag_erp_v3';
+const SHOPS=['Head Office','Warehouse','Store 1','Store 2','Store 3','Store 4'];
+const PAY=['Cash','Card','Bank transfer','eSewa','Credit'];
+const CATS=['Backpacks','School Bags','Laptop Bags','Travel Bags','Handbags','Sports Bags','Kids Bags','Custom'];
+const NAV=[
+ ['Command',[['dash','📊','Dashboard'],['search','🔎','Global Search'],['ai','🤖','AI Advisor']]],
+ ['Sales',[['pos','🛍️','POS'],['invoices','🧾','Invoices'],['returns','↩️','Returns'],['customers','👤','Customers']]],
+ ['Inventory',[['products','🏷️','Products'],['stock','📦','Stock by Shop'],['ledger','📋','Stock Ledger'],['transfers','🔄','Transfers'],['adjust','⚖️','Adjustments'],['count','🔢','Stock Count']]],
+ ['Purchasing',[['suppliers','🏭','Suppliers'],['purchases','🛒','Purchase Orders'],['grn','📥','Goods Receipt'],['reorder','🤖','Auto Reorder']]],
+ ['Price & Barcode',[['prices','💲','Price Management'],['labels','🖨️','Barcode & Labels']]],
+ ['Supply & Analytics',[['supply','🚚','Supply Chain'],['forecast','📈','Inventory Forecast'],['analytics','👥','Customer Analytics'],['performance','🏆','Performance Reports']]],
+ ['Administration',[['printers','🖨️','Printer Setup'],['roles','🛡️','Roles & Permissions']]],
+ ['Finance',[['accounts','💰','Cash & Bank'],['expenses','💸','Expenses'],['pl','📈','Profit & Loss']]],
+ ['System',[['reports','📑','Reports'],['settings','⚙️','Settings']]]
+];
+const TITLES={};NAV.forEach(g=>g[1].forEach(([k,i,l])=>TITLES[k]=l));
+const ROLES={
+ owner:{name:'Super Admin',pages:null},
+ manager:{name:'Manager',pages:['dash','search','invoices','returns','customers','products','ledger','transfers','count']},
+ cashier:{name:'Cashier',pages:['dash','search','pos','invoices','customers']},
+ warehouse:{name:'Warehouse Staff',pages:['dash','search','products','stock','ledger','transfers','adjust','count','grn','labels']},
+ accountant:{name:'Accountant',pages:['dash','search','invoices','accounts','expenses','pl','reports','ai']}
+};
+
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const num=v=>parseFloat(v)||0;
+const r2=x=>Math.round(x*100)/100;
+const money=n=>'NPR '+Number(n||0).toLocaleString('en-IN',{maximumFractionDigits:2});
+const today=()=>new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Kathmandu'});
+const uid=p=>p+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const sum=(arr,k)=>arr.reduce((a,x)=>a+num(x[k]),0);
+const inR=(d,f,t)=>d>=f&&d<=t;
+const badge=(t,c='')=>`<span class="b ${c}">${esc(t)}</span>`;
+const tbl=(heads,rows)=>`<div class="tw"><table><thead><tr>${heads.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')||`<tr><td colspan="${heads.length}" class="mut">No records</td></tr>`}</tbody></table></div>`;
+const kpi=(l,v,i)=>`<div class="card kpi"><div>${i} <span class="mut">${l}</span></div><div class="v">${v}</div></div>`;
+const F=(n,l,v='',t='text',req=0)=>`<div class="field"><label>${l}${req?' *':''}</label><input name="${n}" type="${t}" value="${esc(v)}" ${req?'required':''} ${t==='number'?'step="any" min="0"':''}></div>`;
+const SEL=(n,l,opts,v='')=>`<div class="field"><label>${l}</label><select name="${n}">${opts.map(o=>{const val=Array.isArray(o)?o[0]:o;const lab=Array.isArray(o)?o[1]:o;return `<option value="${esc(val)}" ${String(val)===String(v)?'selected':''}>${esc(lab)}</option>`}).join('')}</select></div>`;
+const TA=(n,l,v='')=>`<div class="field"><label>${l}</label><textarea name="${n}" rows="2">${esc(v)}</textarea></div>`;
+
+/* ================= DATA ================= */
+let db=null, me=null, currentShop='Head Office', currentPage='dash';
+let cart=[], pos=freshPos(), posQ='', chart=null;
+let plFrom=monthStart(), plTo=today(), repType='sales', repFrom=monthStart(), repTo=today(), countShop='Head Office';
+
+function monthStart(){const d=new Date();return new Date(d.getFullYear(),d.getMonth(),1).toISOString().slice(0,10);}
+function freshPos(){return {cust:'',disc:0,pay:'Cash',paid:'',ref:''};}
+
+function seed(){
+  const P=[
+   {sku:'MBB-0001',name:'Premium Laptop Bag',cat:'Laptop Bags',brand:'MS',color:'Black',size:'15.6 in',cost:2500,other:120,price:4500,wholesale:3800,minp:4000,tax:13,reorder:20,max:200,stock:{Warehouse:60,'Store 1':12,'Store 2':8}},
+   {sku:'MBB-0002',name:'School Backpack',cat:'School Bags',brand:'MS',color:'Blue',size:'Medium',cost:850,other:40,price:1499,wholesale:1200,minp:1300,tax:13,reorder:30,max:300,stock:{Warehouse:120,'Store 1':25,'Store 2':18}},
+   {sku:'MBB-0003',name:'Travel Duffle 45L',cat:'Travel Bags',brand:'MS',color:'Navy',size:'Large',cost:1500,other:80,price:2800,wholesale:2200,minp:2500,tax:13,reorder:15,max:150,stock:{Warehouse:30,'Store 1':4,'Store 2':3}},
+   {sku:'MBB-0004',name:'Ladies Handbag',cat:'Handbags',brand:'MS Luxe',color:'Red',size:'Medium',cost:2200,other:60,price:4500,wholesale:3500,minp:4000,tax:13,reorder:10,max:80,stock:{Warehouse:15,'Store 1':6,'Store 2':0}},
+   {sku:'MBB-0005',name:'Gym Bag',cat:'Sports Bags',brand:'MS Sport',color:'Black',size:'Large',cost:700,other:30,price:1300,wholesale:1000,minp:1150,tax:13,reorder:25,max:120,stock:{Warehouse:50,'Store 1':10,'Store 2':9}}
+  ];
+  const d={v:3,
+    users:[
+      {id:'u1',user:'owner',pass:btoa('admin123'),name:'Owner',role:'owner',shop:'Head Office'},
+      {id:'u2',user:'manager',pass:btoa('manager123'),name:'Manager',role:'manager',shop:'Store 1'},
+      {id:'u3',user:'cashier',pass:btoa('cashier123'),name:'Cashier',role:'cashier',shop:'Store 1'},
+      {id:'u4',user:'warehouse',pass:btoa('warehouse123'),name:'Warehouse',role:'warehouse',shop:'Warehouse'},
+      {id:'u5',user:'accountant',pass:btoa('accountant123'),name:'Accountant',role:'accountant',shop:'Head Office'}
+    ],
+    products:[],stock:{},
+    customers:[{id:uid('c'),name:'Ram Sharma',phone:'9841234567',due:0,points:0,spent:0},{id:uid('c'),name:'Sita Thapa',phone:'9847654321',due:0,points:0,spent:0}],
+    suppliers:[{id:uid('v'),name:'Leather World Nepal',phone:'9812345678',email:'info@leatherworld.com'}],
+    sales:[],returns:[],purchases:[],grns:[],receipts:[],expenses:[],moves:[],transfers:[],adjustments:[],audit:[],
+    settings:{company:'MS Bag Shop',address:'Kathmandu, Nepal',phone:'',tax:13,footer:'Thank you for shopping with MS Bag Shop!',seq:{}}
+  };
+  P.forEach((x,i)=>{
+    const {stock,...rest}=x;
+    const p={id:uid('p'),...rest,barcode:'8900000'+String(i+1).padStart(6,'0'),status:'Active',image:'',desc:''};
+    d.products.push(p); d.stock[p.id]=stock;
+  });
+  return d;
+}
+function load(){ try{ const s=localStorage.getItem(KEY); db=s?JSON.parse(s):seed(); }catch(e){ db=seed(); } }
+function save(){ try{ localStorage.setItem(KEY,JSON.stringify(db)); }catch(e){ toast('Storage full. Download a backup.'); } }
+
+/* ================= STOCK & LOOKUPS ================= */
+const product=id=>db.products.find(p=>p.id===id);
+const landed=p=>num(p.cost)+num(p.other);
+const qty=(pid,shop)=>(db.stock[pid]&&db.stock[pid][shop])||0;
+const total=pid=>SHOPS.reduce((a,s)=>a+qty(pid,s),0);
+function addStock(pid,shop,n){ db.stock[pid]=db.stock[pid]||{}; db.stock[pid][shop]=(db.stock[pid][shop]||0)+n; }
+function move(type,pid,shop,q,ref){ db.moves.push({d:today(),t:type,pid,shop,q,ref,u:me?me.name:'-'}); }
+function audit(a){ db.audit.unshift({t:new Date().toLocaleString(),u:me?me.name:'-',a}); db.audit=db.audit.slice(0,300); }
+function nextNo(key,prefix){ const n=(db.settings.seq[key]=(db.settings.seq[key]||0)+1); return `${prefix}-${new Date().getFullYear()}-${String(n).padStart(6,'0')}`; }
+function returnedQty(sid,pid){ return db.returns.filter(r=>r.saleId===sid).reduce((a,r)=>a+(r.items.find(i=>i.pid===pid)?.qty||0),0); }
+
+/* ================= ACCOUNTS & P&L ================= */
+function ledger(){
+  const S=db.sales, R=db.returns;
+  const cashIn=sum(S.filter(s=>s.pay==='Cash'),'paid')+sum(db.receipts.filter(r=>r.method==='Cash'),'amt');
+  const bankIn=sum(S.filter(s=>s.pay==='Card'||s.pay==='Bank transfer'),'paid')+sum(db.receipts.filter(r=>r.method==='Bank transfer'),'amt');
+  const esewa=sum(S.filter(s=>s.pay==='eSewa'&&s.verified),'paid');
+  const esewaPending=sum(S.filter(s=>s.pay==='eSewa'&&!s.verified),'paid');
+  const cashOut=sum(db.expenses.filter(e=>e.method==='Cash'),'amount')+sum(R.filter(r=>r.refund==='Cash'),'total')+sum(db.purchases.filter(p=>p.paid&&p.payMethod==='Cash'),'total');
+  const bankOut=sum(db.expenses.filter(e=>e.method==='Bank transfer'),'amount')+sum(R.filter(r=>r.refund==='Bank transfer'),'total')+sum(db.purchases.filter(p=>p.paid&&p.payMethod==='Bank transfer'),'total');
+  return {cash:cashIn-cashOut,bank:bankIn-bankOut,esewa,esewaPending,
+    recv:sum(db.customers,'due'),pay:sum(db.purchases.filter(p=>p.status==='Received'&&!p.paid),'total')};
+}
+function pnl(f,t){
+  const S=db.sales.filter(s=>inR(s.d,f,t)), R=db.returns.filter(r=>inR(r.d,f,t)), E=db.expenses.filter(e=>inR(e.d,f,t));
+  const rev=sum(S,'total')-sum(S,'tax')-(sum(R,'total')-sum(R,'tax'));
+  const cogs=S.reduce((a,s)=>a+s.items.reduce((b,i)=>b+i.qty*i.cost,0),0)-R.reduce((a,r)=>a+r.items.reduce((b,i)=>b+i.qty*i.cost,0),0);
+  const gross=rev-cogs, exp=sum(E,'amount');
+  return {rev,cogs,gross,exp,net:gross-exp};
+}
+
+/* ================= SHELL ================= */
+function login(){
+  const u=$('lu').value.trim(), p=$('lp').value;
+  const user=db.users.find(x=>x.user===u);
+  if(!user||user.pass!==btoa(p)){ $('lerr').textContent='Wrong username or password'; return; }
+  me=user; applyCustomRoles(); currentShop=user.shop||'Head Office';
+  $('lerr').textContent='';
+  $('login').classList.add('hidden'); $('app').classList.remove('hidden');
+  buildShell(); go(canSee('dash')?'dash':firstAllowed());
+}
+function logout(){ me=null; toggleNav(false); closeModal(); $('app').classList.add('hidden'); $('login').classList.remove('hidden'); }
+function canSee(p){ return !!me && (ROLES[me.role].pages===null || ROLES[me.role].pages.includes(p)); }
+function firstAllowed(){ for(const g of NAV) for(const [k] of g[1]) if(canSee(k)) return k; return 'dash'; }
+
+function buildShell(){
+  let h=`<div class="brand">👜 MS <span>Bag Shop</span></div><div class="who">${esc(me.name)} · ${ROLES[me.role].name}</div>`;
+  NAV.forEach(([g,items])=>{
+    const vis=items.filter(([k])=>canSee(k));
+    if(!vis.length) return;
+    h+=`<div class="grp">${g}</div>`+vis.map(([k,i,l])=>`<button class="nv" data-p="${k}" onclick="go('${k}')">${i} ${l}</button>`).join('');
+  });
+  h+=`<button class="nv out" onclick="logout()">🚪 Logout</button>`;
+  $('sb').innerHTML=h;
+  $('shopSel').innerHTML=visShops().map(s=>`<option ${s===currentShop?'selected':''}>${s}</option>`).join('');
+  const B=[['dash','🏠','Home'],['pos','🛍️','POS'],['stock','📦','Stock'],['invoices','🧾','Sales']];
+  $('bb').innerHTML=B.map(([k,i,l])=>`<button data-b="${k}" onclick="go('${k}')"><span class="ic">${i}</span>${l}</button>`).join('')+
+    `<button onclick="toggleNav(true)"><span class="ic">☰</span>More</button>`;
+}
+function toggleNav(force){
+  const open=typeof force==='boolean'?force:!$('app').classList.contains('open');
+  $('app').classList.toggle('open',open); $('ov').classList.toggle('show',open);
+}
+function toggleDark(){ document.body.classList.toggle('dark'); }
+function setShop(v){ currentShop=v; refresh(); }
+function toast(m){ const t=$('toast'); t.textContent=m; t.classList.add('show'); clearTimeout(window._tt); window._tt=setTimeout(()=>t.classList.remove('show'),2600); }
+
+function go(p){
+  if(!me) return;
+  if(!canSee(p)) return toast('Your role cannot open this page');
+  currentPage=p; $('ptitle').textContent=TITLES[p]||'';
+  document.querySelectorAll('.nv').forEach(b=>b.classList.toggle('on',b.dataset.p===p));
+  document.querySelectorAll('[data-b]').forEach(b=>b.classList.toggle('on',b.dataset.b===p));
+  refresh(true); toggleNav(false); window.scrollTo(0,0);
+}
+function refresh(scroll){ $('main').innerHTML=RENDER[currentPage](); if(currentPage==='dash') drawChart(); }
+
+/* ================= MODAL ================= */
+function openForm(title,body,saver,oninput=''){
+  window._saver=saver;
+  $('mt').textContent=title;
+  $('mb').innerHTML=`<form id="mf" ${oninput?`oninput="${oninput}"`:''} onsubmit="return submitForm(event)">${body}<div class="acts"><button type="button" class="btn" onclick="closeModal()">Cancel</button><button class="btn p">Save</button></div></form>`;
+  $('modal').classList.add('show');
+  return $('mf');
+}
+function submitForm(e){ e.preventDefault(); const ok=window._saver(new FormData(e.target),e.target); if(ok!==false) closeModal(); return false; }
+function closeModal(){ $('modal').classList.remove('show'); $('mb').innerHTML=''; }
+const fail=m=>{toast(m);return false;};
+
+/* ================= DASHBOARD ================= */
+function pDashCashier(){
+  const sh=me.shop, t=today();
+  const S=db.sales.filter(s=>s.shop===sh&&s.d===t&&s.status!=='Cancelled'&&!s.voided);
+  const R=db.returns.filter(r=>r.shop===sh&&r.d===t);
+  const pay=k=>sum(S.filter(s=>s.pay===k),'paid');
+  return `<div class='card' style='background:linear-gradient(135deg,#1d4ed8,#0a1628);color:#fff;text-align:center;padding:24px'>
+    <div style='font-size:14px;opacity:.85'>💵 Sales Today · ${esc(sh)}</div>
+    <div style='font-size:34px;font-weight:800;margin-top:6px'>${money(sum(S,'total'))}</div>
+    <div style='font-size:12px;opacity:.85;margin-top:4px'>${t} (Nepal time) · resets automatically at midnight</div></div>
+  <div class='grid'>${kpi('Transactions today',S.length,'🧾')}${kpi('Returns / refunds today',money(sum(R,'total')),'↩️')}${kpi('Net sales today',money(sum(S,'total')-sum(R,'total')),'✅')}</div>
+  <div class='card'><h3>Payments collected today</h3>${tbl(['Method','Collected'],['Cash','Card','Bank transfer','eSewa','Credit'].map(k=>[k,money(pay(k))]))}</div>
+  <div class='card'><h3>Today's invoices</h3>${tbl(['Invoice','Customer','Total','Paid','Status'],S.slice().reverse().map(s=>[s.no,esc(s.cust),money(s.total),money(s.paid),statusBadge(s.status)]))}</div>`;
+}
+function pDash(){
+  if(me.role==='cashier') return pDashCashier();
+  if(me.role==='salesman') return pDashSalesman();
+  if(locked()) return pDashLite();
+  const t=today(), m=t.slice(0,7);
+  const todaySales=sum(db.sales.filter(s=>s.d===t),'total');
+  const monthSales=sum(db.sales.filter(s=>s.d.startsWith(m)),'total');
+  const p=pnl('0000-00-00','9999-12-31');
+  const stockVal=db.products.reduce((a,x)=>a+total(x.id)*landed(x),0);
+  const low=db.products.filter(x=>total(x.id)<=x.reorder);
+  const L=ledger();
+  return `
+  <div class="grid">
+    ${kpi('Sales today',money(todaySales),'💵')}
+    ${kpi('Sales this month',money(monthSales),'📈')}
+    ${kpi('Net profit (all time)',money(p.net),'💰')}
+    ${kpi('Stock value (cost)',money(stockVal),'📦')}
+    ${kpi('Low / out of stock',low.length,'⚠️')}
+    ${kpi('Customer dues',money(L.recv),'👤')}
+  </div>
+  <div class="card"><h3>All items in stock (${db.products.length})</h3>${tbl(['Product','SKU','Price','Stock'],db.products.map(p=>[esc(p.name),esc(p.sku),money(p.price),total(p.id)]))}</div>
+  <div class="card"><h3>Sales — last 12 months</h3><div style="height:250px"><canvas id="cv"></canvas></div></div>
+  <div class="grid2">
+    <div class="card"><h3>Low stock</h3>${tbl(['Product','On hand','Reorder'],low.map(x=>[esc(x.name),total(x.id),x.reorder]))}</div>
+    <div class="card"><h3>Recent sales</h3>${tbl(['Invoice','Customer','Total','Status'],db.sales.slice(-6).reverse().map(s=>[s.no,esc(s.cust),money(s.total),statusBadge(s.status)]))}</div>
+  </div>`;
+}
+function drawChart(){
+  const cv=$('cv'); if(!cv||!window.Chart) return;
+  const labels=[],vals=[], now=new Date();
+  for(let i=11;i>=0;i--){ const d=new Date(now.getFullYear(),now.getMonth()-i,1); const k=d.toISOString().slice(0,7); labels.push(k); vals.push(sum(db.sales.filter(s=>s.d.startsWith(k)),'total')); }
+  if(chart) chart.destroy();
+  chart=new Chart(cv,{type:'bar',data:{labels,datasets:[{data:vals,backgroundColor:'#d4a843'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}}});
+}
+function statusBadge(s){ return s==='Paid'?badge(s,'ok'):(s.startsWith('Pending')||s==='Due')?badge(s,'warn'):badge(s,'bad'); }
+
+/* ================= AI ADVISOR (rule-based on your records) ================= */
+function pAI(){
+  const ins=[];
+  const low=db.products.filter(x=>total(x.id)<=x.reorder);
+  if(low.length) ins.push(['⚠️',`Reorder soon: ${low.map(x=>x.name).join(', ')}.`]);
+  const cutoff=new Date(Date.now()-60*864e5).toISOString().slice(0,10);
+  const dead=db.products.filter(x=>total(x.id)>0&&!db.sales.some(s=>s.d>=cutoff&&s.items.some(i=>i.pid===x.id)));
+  if(dead.length) ins.push(['🐌',`No sales in 60 days but stock on hand: ${dead.map(x=>x.name).join(', ')}. Consider a promotion.`]);
+  const thin=db.products.filter(x=>x.price>0&&(x.price-landed(x))/x.price<0.25);
+  if(thin.length) ins.push(['📉',`Gross margin below 25%: ${thin.map(x=>x.name).join(', ')}.`]);
+  const pe=db.sales.filter(s=>s.pay==='eSewa'&&!s.verified);
+  if(pe.length) ins.push(['⏳',`${pe.length} eSewa payment(s) waiting for verification. Verify them in Invoices before counting them as cash.`]);
+  const pp=db.purchases.filter(p=>p.status==='Pending');
+  if(pp.length) ins.push(['🛒',`${pp.length} purchase order(s) waiting for approval.`]);
+  const top=[...db.customers].sort((a,b)=>b.due-a.due)[0];
+  if(top&&top.due>0) ins.push(['👤',`${top.name} owes ${money(top.due)}. Follow up on the due.`]);
+  const p=pnl('0000-00-00','9999-12-31');
+  ins.push(['💰',`All-time net profit: ${money(p.net)} (gross ${money(p.gross)}, expenses ${money(p.exp)}).`]);
+  return `<div class="card"><h3>🤖 AI Advisor</h3><p class="mut">Built from your saved records. It does not change prices, stock or accounts.</p>
+    ${ins.map(([i,t])=>`<div class="card" style="margin:8px 0">${i} ${esc(t)}</div>`).join('')}</div>`;
+}
+
+/* ================= POS ================= */
+function cartCalc(){
+  let sub=0,disc=0,tax=0;
+  cart.forEach(c=>{const p=product(c.pid); const g=p.price*c.qty, d=g*pos.disc/100; sub+=g; disc+=d; tax+=(g-d)*p.tax/100;});
+  return {sub,disc,tax,total:sub-disc+tax};
+}
+function posTiles(){
+  const list=db.products.filter(p=>p.status==='Active'&&(!posQ||(p.name+' '+p.sku+' '+p.barcode).toLowerCase().includes(posQ.toLowerCase())));
+  return list.map(p=>{const q=qty(p.id,currentShop);
+    return `<button class="tile" ${q<=0?'disabled':''} onclick="addCart('${p.id}')"><b>${esc(p.name)}</b><span class="mut">${esc(p.sku)}</span><span>${money(p.price)}</span>${badge(q+' in '+currentShop,q<=p.reorder?'warn':'ok')}</button>`;
+  }).join('')||'<p class="mut">No products match.</p>';
+}
+function pPOS(){
+  const t=cartCalc();
+  const lines=cart.map((c,i)=>{const p=product(c.pid);return `<tr><td>${esc(p.name)}<div class="mut">${money(p.price)} each</div></td><td><input type="number" min="1" value="${c.qty}" style="width:70px" onchange="setCartQty(${i},this.value)"></td><td class="r">${money(p.price*c.qty)}</td><td><button class="btn s d" onclick="delCart(${i})">✕</button></td></tr>`}).join('');
+  return `<div class="pos">
+    <div class="card">
+      <input id="posq" placeholder="Search name, SKU or barcode" value="${esc(posQ)}" oninput="posQ=this.value;$('tiles').innerHTML=posTiles()" style="margin-bottom:12px">
+      <div id="tiles" class="tiles">${posTiles()}</div>
+    </div>
+    <div class="card">
+      <h3>Current sale · ${esc(currentShop)}</h3>
+      ${cart.length?`<div class="tw"><table><tbody>${lines}</tbody></table></div>`:'<p class="mut">Tap a product to add it.</p>'}
+      <div class="fg" style="margin-top:10px">
+        <div class="field"><label>Customer</label><select onchange="pos.cust=this.value;refresh()"><option value="">Walk-in customer</option>${db.customers.map(c=>`<option value="${c.id}" ${pos.cust===c.id?'selected':''}>${esc(c.name)}${c.due?' (due '+money(c.due)+')':''}</option>`).join('')}</select></div>
+        <div class="field"><label>Discount %</label><input type="number" min="0" max="100" value="${pos.disc}" onchange="pos.disc=Math.min(100,num(this.value));refresh()"></div>
+        <div class="field"><label>Payment</label><select onchange="pos.pay=this.value;refresh()">${PAY.map(x=>`<option ${pos.pay===x?'selected':''}>${x}</option>`).join('')}</select></div>
+        <div class="field"><label>Amount received</label><input type="number" min="0" value="${pos.paid}" placeholder="${t.total.toFixed(0)}" onchange="pos.paid=this.value;refresh()"></div>
+        ${pos.pay==='eSewa'?`<div class="field"><label>eSewa transaction ref *</label><input value="${esc(pos.ref)}" onchange="pos.ref=this.value"></div>`:''}
+      </div>
+      <div class="totals">
+        <div><span>Subtotal</span><b>${money(t.sub)}</b></div>
+        <div><span>Discount</span><b>− ${money(t.disc)}</b></div>
+        <div><span>Tax</span><b>${money(t.tax)}</b></div>
+        <div class="grand"><span>Total</span><b>${money(t.total)}</b></div>
+      </div>
+      <div class="acts"><button class="btn" onclick="clearCart()">Clear</button><button class="btn g" onclick="checkout()" ${cart.length?'':'disabled'}>Complete sale</button></div>
+    </div>
+  </div>`;
+}
+function addCart(pid){
+  const line=cart.find(c=>c.pid===pid), cur=line?line.qty:0;
+  if(cur+1>qty(pid,currentShop)) return toast('Not enough stock in '+currentShop);
+  if(line) line.qty++; else cart.push({pid,qty:1});
+  refresh();
+}
+function setCartQty(i,v){
+  const c=cart[i], n=Math.max(1,parseInt(v)||1);
+  if(n>qty(c.pid,currentShop)){ toast('Only '+qty(c.pid,currentShop)+' in stock'); c.qty=qty(c.pid,currentShop); }
+  else c.qty=n;
+  refresh();
+}
+function delCart(i){ cart.splice(i,1); refresh(); }
+function clearCart(){ cart=[]; pos=freshPos(); refresh(); }
+function checkout(){
+  if(!cart.length) return toast('Cart is empty');
+  for(const c of cart){
+    const p=product(c.pid);
+    if(qty(p.id,currentShop)<c.qty) return toast(`Only ${qty(p.id,currentShop)} of ${p.name} in ${currentShop}`);
+    if(p.minp && p.price*(1-pos.disc/100)<p.minp) return toast(`${p.name} is below its minimum price. Reduce the discount.`);
+  }
+  if(pos.pay==='eSewa' && !pos.ref.trim()) return toast('Enter the eSewa transaction reference');
+  const t=cartCalc();
+  const paid=pos.paid===''?t.total:Math.min(num(pos.paid),t.total);
+  const due=r2(t.total-paid);
+  const cust=pos.cust?db.customers.find(c=>c.id===pos.cust):null;
+  if((due>0||pos.pay==='Credit') && !cust) return toast('Select a customer to record the amount due');
+  const items=cart.map(c=>{const p=product(c.pid);return {pid:p.id,name:p.name,qty:c.qty,price:p.price,cost:landed(p),tax:p.tax};});
+  const sale={id:uid('s'),no:nextNo('inv','INV'),d:today(),shop:currentShop,custId:cust?cust.id:'',cust:cust?cust.name:'Walk-in',
+    items,disc:pos.disc,sub:t.sub,discAmt:t.disc,tax:t.tax,total:t.total,pay:pos.pay,paid,due,ref:pos.ref.trim(),
+    verified:pos.pay!=='eSewa',status:pos.pay==='eSewa'?'Pending verification':(due>0?'Due':'Paid'),by:me.name};
+  const change=pos.paid!==''&&num(pos.paid)>t.total?num(pos.paid)-t.total:0;
+  cart.forEach(c=>{ addStock(c.pid,currentShop,-c.qty); move('Sale',c.pid,currentShop,-c.qty,sale.no); });
+  if(cust){ cust.due=r2(cust.due+due); cust.spent+=t.total; cust.points+=Math.floor(t.total/100); }
+  db.sales.push(sale); audit(`Sale ${sale.no} ${money(t.total)}`);
+  cart=[]; pos=freshPos(); save();
+  toast(`Saved ${sale.no}${change?' · change '+money(change):''}`);
+  refresh(true);
+  if(confirm(`Print invoice ${sale.no}?`)) showInvoice(sale.id);
+}
+function showInvoice(id){
+  const s=db.sales.find(x=>x.id===id); if(!s) return;
+  const C=db.settings;
+  $('mt').textContent='Invoice '+s.no;
+  $('mb').innerHTML=`<div id="printArea">
+    <h3 style="color:#000">${esc(C.company)}</h3><div>${esc(C.address)} ${esc(C.phone)}</div>
+    <div style="margin:10px 0">Invoice: <b>${s.no}</b><br>Date: ${s.d}<br>Shop: ${esc(s.shop)}<br>Customer: ${esc(s.cust)}</div>
+    <table style="color:#000"><thead><tr><th>Item</th><th>Qty</th><th>Price</th><th>Amount</th></tr></thead><tbody>
+    ${s.items.map(i=>`<tr><td>${esc(i.name)}</td><td>${i.qty}</td><td>${money(i.price)}</td><td>${money(i.qty*i.price)}</td></tr>`).join('')}</tbody></table>
+    <div style="text-align:right;margin-top:10px">Subtotal: ${money(s.sub)}<br>Discount (${s.disc}%): ${money(s.discAmt)}<br>Tax: ${money(s.tax)}<br><b>Total: ${money(s.total)}</b><br>Paid (${esc(s.pay)}): ${money(s.paid)}<br>Due: ${money(s.due)}</div>
+    <p style="text-align:center;margin-top:14px">${esc(C.footer)}</p></div>
+    <div class="acts"><button class="btn p" onclick="window.print()">🖨️ Print / Save PDF</button></div>`;
+  $('modal').classList.add('show');
+}
+
+/* ================= INVOICES & RETURNS ================= */
+function pInvoices(){
+  return tbl(['Invoice','Date','Shop','Customer','Total','Paid','Due','Payment','Status',''],
+    db.sales.filter(s=>visShops().includes(s.shop)).slice().reverse().map(s=>[s.no,s.d,esc(s.shop),esc(s.cust),money(s.total),money(s.paid),money(s.due),esc(s.pay)+(s.ref?`<div class="mut">${esc(s.ref)}</div>`:''),statusBadge(s.status),
+    `<button class="btn s" onclick="showInvoice('${s.id}')">🖨️</button> ${s.pay==='eSewa'&&!s.verified?`<button class="btn s g" onclick="verifyEsewa('${s.id}')">Verify eSewa</button>`:''}`]));
+}
+function verifyEsewa(id){
+  const s=db.sales.find(x=>x.id===id);
+  if(!confirm(`Confirm that eSewa reference ${s.ref} has been received in your eSewa merchant account before marking it paid?`)) return;
+  s.verified=true; s.status='Paid'; audit(`Verified eSewa ${s.ref} for ${s.no}`); save(); refresh();
+}
+function pReturns(){
+  const sold=db.sales.filter(s=>visShops().includes(s.shop)).slice().reverse().slice(0,40);
+  return `<div class="card"><h3>Pick an invoice to return items from</h3>
+    ${tbl(['Invoice','Date','Customer','Total','Action'],sold.map(s=>[s.no,s.d,esc(s.cust),money(s.total),`<button class="btn s" onclick="openReturn('${s.id}')">Return</button>`]))}</div>
+    <div class="card"><h3>Returns</h3>${tbl(['Return','Date','Invoice','Shop','Refund','Amount','Reason'],db.returns.slice().reverse().map(r=>[r.no,r.d,r.saleNo,esc(r.shop),esc(r.refund),money(r.total),esc(r.reason)]))}</div>`;
+}
+function openReturn(sid){
+  const s=db.sales.find(x=>x.id===sid);
+  const rows=s.items.map((it,i)=>{const max=it.qty-returnedQty(sid,it.pid); return `<tr><td>${esc(it.name)}</td><td>${it.qty}</td><td>${max}</td><td><input type="number" min="0" max="${max}" value="0" name="r${i}" ${max<=0?'disabled':''} style="width:80px"></td></tr>`;}).join('');
+  openForm('Return from '+s.no,`<div class="tw"><table><thead><tr><th>Item</th><th>Sold</th><th>Can return</th><th>Qty</th></tr></thead><tbody>${rows}</tbody></table></div>
+    ${SEL('reason','Reason',['Damaged','Wrong size','Defective','Customer changed mind','Other'])}
+    ${SEL('refund','Refund method',['Cash','Bank transfer','Credit note'])}`,
+  (fd)=>{
+    const items=[]; let totalR=0, taxR=0;
+    s.items.forEach((it,i)=>{
+      const q=parseInt(fd.get('r'+i))||0; if(!q) return;
+      const max=it.qty-returnedQty(sid,it.pid);
+      if(q>max) return fail(`Cannot return more than ${max} of ${it.name}`);
+      const line=it.price*(1-s.disc/100)*q, tax=line*it.tax/100;
+      totalR+=line+tax; taxR+=tax;
+      items.push({pid:it.pid,name:it.name,qty:q,cost:it.cost,price:it.price});
+    });
+    if(!items.length) return fail('Enter a quantity to return');
+    const refund=fd.get('refund');
+    const ret={id:uid('r'),no:nextNo('ret','RET'),d:today(),saleId:s.id,saleNo:s.no,shop:s.shop,items,tax:r2(taxR),total:r2(totalR),refund,reason:fd.get('reason'),by:me.name};
+    items.forEach(i=>{ addStock(i.pid,s.shop,i.qty); move('Return',i.pid,s.shop,i.qty,ret.no); });
+    if(refund==='Credit note'){ const c=db.customers.find(x=>x.id===s.custId); if(c) c.due=Math.max(0,r2(c.due-ret.total)); }
+    db.returns.push(ret); audit(`Return ${ret.no} ${money(ret.total)}`); save(); toast('Return saved, stock restored'); refresh();
+    return true;
+  });
+}
+
+/* ================= CUSTOMERS ================= */
+function pCustomers(){
+  return `<div class="acts" style="justify-content:flex-start"><button class="btn p" onclick="editCustomer()">+ Add customer</button></div>`+
+  tbl(['Name','Phone','Due','Points','Total spent',''],db.customers.map(c=>[esc(c.name),esc(c.phone||'-'),money(c.due),c.points,money(c.spent),
+    `<button class="btn s" onclick="editCustomer('${c.id}')">Edit</button> <button class="btn s g" onclick="collectDue('${c.id}')">Collect due</button> <button class="btn s d" onclick="delCustomer('${c.id}')">Del</button>`]));
+}
+function editCustomer(id){
+  const c=id?db.customers.find(x=>x.id===id):{};
+  openForm(id?'Edit customer':'New customer',F('name','Name',c.name,'text',1)+F('phone','Phone',c.phone)+F('email','Email',c.email),(fd)=>{
+    const name=fd.get('name').trim(); if(!name) return fail('Name required');
+    const data={name,phone:fd.get('phone').trim(),email:fd.get('email').trim()};
+    if(id) Object.assign(c,data); else db.customers.push({id:uid('c'),...data,due:0,points:0,spent:0});
+    audit((id?'Updated':'Added')+' customer '+name); save(); refresh(); toast('Customer saved');
+  });
+}
+function delCustomer(id){ if(!confirm('Delete this customer? Past invoices are kept.')) return; db.customers=db.customers.filter(c=>c.id!==id); save(); refresh(); }
+function collectDue(id){
+  const c=db.customers.find(x=>x.id===id);
+  if(c.due<=0) return toast('No due for this customer');
+  openForm('Collect due from '+c.name,F('amt','Amount (due '+money(c.due)+')',c.due,'number',1)+SEL('method','Method',['Cash','Bank transfer']),(fd)=>{
+    const amt=num(fd.get('amt'));
+    if(amt<=0||amt>c.due) return fail('Enter an amount up to the due');
+    c.due=r2(c.due-amt);
+    db.receipts.push({id:uid('rc'),d:today(),cust:c.id,amt,method:fd.get('method')});
+    audit(`Due collected ${money(amt)} from ${c.name}`); save(); refresh(); toast('Payment recorded');
+  });
+}
+
+/* ================= PRODUCTS ================= */
+function pProducts(){
+  return `<div class="acts" style="justify-content:flex-start">${me.role==='manager'?'':'<button class="btn p" onclick="editProduct()">+ Add product</button>'}</div>`+
+  tbl(['','Product','SKU / Barcode','Cost (landed)','Price','Wholesale','Stock','Status',''],
+    db.products.map(p=>[p.image?`<img src="${esc(p.image)}" style="width:40px;height:40px;object-fit:cover;border-radius:8px">`:`<div style="width:40px;height:40px;border-radius:8px;background:var(--line);display:grid;place-items:center">${esc(p.name.charAt(0))}</div>`,
+      `<b>${esc(p.name)}</b><div class="mut">${esc(p.cat)} · ${esc(p.color)} ${esc(p.size)}</div>`,
+      `${esc(p.sku)}<div class="mut">${esc(p.barcode)}</div>`,money(landed(p)),money(p.price),money(p.wholesale),total(p.id),
+      p.status==='Active'?badge('Active','ok'):badge('Inactive'),
+      `<button class="btn s" onclick="openHistory('${p.id}')">History</button> <button class="btn s" onclick="editProduct('${p.id}')">Edit</button> <button class="btn s d" onclick="delProduct('${p.id}')">Del</button>`]));
+}
+function productForm(p){
+  return `<div class="fg">
+    ${F('name','Product name',p.name,'text',1)}${F('sku','SKU',p.sku,'text',1)}
+    ${F('barcode','Barcode',p.barcode)}${SEL('cat','Category',CATS,p.cat)}
+    ${F('brand','Brand',p.brand||'MS Bag Shop')}${F('color','Colour',p.color)}
+    ${F('size','Size',p.size)}${SEL('status','Status',['Active','Inactive'],p.status||'Active')}
+    ${F('image','Image URL (optional)',p.image)}<div class="field"><label>Upload photo (camera or gallery)</label><input type="file" accept="image/*" onchange="pickImg(this)"></div>${F('tax','Tax rate %',p.tax??13,'number')}
+    ${F('cost','Purchase cost',p.cost??'','number',1)}${F('other','Freight / other landed cost',p.other??0,'number')}
+    ${F('price','Selling price (before tax)',p.price??'','number',1)}${F('wholesale','Wholesale price',p.wholesale??'','number')}
+    ${F('minp','Minimum permitted price',p.minp??'','number')}${F('markup','Markup % (calculator only)','','number')}
+    ${F('tmargin','Target gross margin % (calculator only)','','number')}
+    ${F('reorder','Reorder level',p.reorder??10,'number')}${F('max','Max stock level',p.max??100,'number')}
+    ${TA('desc','Description',p.desc)}
+  </div><div id="pc"></div><img id="pimg" class="pimg" alt="">`;
+}
+function pcUpdate(f){
+  const v=n=>num(f.elements[n].value);
+  const L=v('cost')+v('other'), pr=v('price'), tm=v('tmargin'), mk=v('markup'), mn=v('minp');
+  const tgt=tm>0&&tm<100?L/(1-tm/100):null, mkp=mk>0?L*(1+mk/100):null, gm=pr>0?(pr-L)/pr*100:0;
+  const warn=mn&&pr&&pr<mn?'<div class="warn">Selling price is below the minimum permitted price</div>':'';
+  $('pc').innerHTML=`<div class="calcbox"><div>Landed unit cost: <b>${money(L)}</b></div>${tgt!==null?`<div>Price for ${tm}% target margin: <b>${money(tgt)}</b></div>`:''}${mkp!==null?`<div>Price at ${mk}% markup: <b>${money(mkp)}</b></div>`:''}<div>Gross margin at selling price: <b>${gm.toFixed(2)}%</b></div>${warn}</div>`;
+  const u=f.elements.image.value.trim(), im=$('pimg');
+  if(im){ im.src=u; im.style.display=u?'block':'none'; }
+}
+function editProduct(id){
+  const p=id?product(id):{};
+  const f=openForm(id?'Edit product':'New product',productForm(p),(fd)=>saveProduct(fd,id),'pcUpdate(this)');
+  if(f) pcUpdate(f);
+}
+function saveProduct(fd,id){
+  const name=fd.get('name').trim(), sku=fd.get('sku').trim(), bc=fd.get('barcode').trim();
+  if(!name||!sku) return fail('Name and SKU are required');
+  if(db.products.some(p=>p.id!==id&&p.sku.toLowerCase()===sku.toLowerCase())) return fail('This SKU already exists');
+  if(bc&&db.products.some(p=>p.id!==id&&p.barcode===bc)) return fail('This barcode is already used');
+  const price=num(fd.get('price')), minp=num(fd.get('minp')), cost=num(fd.get('cost'));
+  if(price<=0) return fail('Enter a selling price');
+  if(minp>price) return fail('Minimum price cannot be higher than the selling price');
+  const data={name,sku,barcode:bc,cat:fd.get('cat'),brand:fd.get('brand').trim(),color:fd.get('color').trim(),size:fd.get('size').trim(),
+    status:fd.get('status'),image:fd.get('image').trim(),cost,other:num(fd.get('other')),price,wholesale:num(fd.get('wholesale')),
+    minp,tax:num(fd.get('tax')),reorder:num(fd.get('reorder')),max:num(fd.get('max')),desc:fd.get('desc').trim()};
+  if(id){ Object.assign(product(id),data); audit('Updated product '+sku); }
+  else { const np={id:uid('p'),...data}; db.products.push(np); db.stock[np.id]={}; audit('Created product '+sku); }
+  save(); toast('Product saved'); refresh(); return true;
+}
+function delProduct(id){
+  const p=product(id);
+  if(total(id)>0) return toast('Cannot delete: stock on hand. Set status to Inactive instead.');
+  if(!confirm('Delete '+p.name+'?')) return;
+  db.products=db.products.filter(x=>x.id!==id); audit('Deleted product '+p.sku); save(); refresh();
+}
+
+/* ================= STOCK, LEDGER, TRANSFERS, ADJUSTMENTS, COUNT ================= */
+function pStock(){
+  return `<p class="mut">Showing stock in every shop. Current shop: <b>${esc(currentShop)}</b></p>`+
+  tbl(['Product','SKU',...visShops(),'Total'],db.products.map(p=>[esc(p.name),esc(p.sku),...visShops().map(s=>{const q=qty(p.id,s);return `<span class="${q<=0?'b bad':''}">${q}</span>`;}),`<b>${visShops().reduce((a,s)=>a+qty(p.id,s),0)}</b>`]));
+}
+function pLedger(){
+  return tbl(['Date','Product','Shop','Type','Qty','Reference','User'],db.moves.filter(m=>visShops().includes(m.shop)).slice(-200).reverse().map(m=>{const p=product(m.pid);return [m.d,esc(p?p.name:'(deleted)'),esc(m.shop),esc(m.t),(m.q>0?'+':'')+m.q,esc(m.ref),esc(m.u)];}));
+}
+function pTransfers(){
+  return `<div class="acts" style="justify-content:flex-start"><button class="btn p" onclick="newTransfer()">+ New transfer</button></div>`+
+  tbl(['Date','Transfer','Product','From','To','Qty'],db.transfers.slice().reverse().map(t=>[t.d,t.no,esc(t.name),esc(t.from),esc(t.to),t.q]));
+}
+function newTransfer(){
+  openForm('New transfer',SEL('pid','Product',db.products.map(p=>[p.id,p.name]))+SEL('from','From shop',SHOPS,currentShop)+SEL('to','To shop',SHOPS,'Store 1')+F('q','Quantity',1,'number',1),(fd)=>{
+    const p=product(fd.get('pid')), from=fd.get('from'), to=fd.get('to'), q=parseInt(fd.get('q'))||0;
+    if(from===to) return fail('Choose two different shops');
+    if(q<=0) return fail('Enter a quantity');
+    if(qty(p.id,from)<q) return fail(`Only ${qty(p.id,from)} at ${from}`);
+    const no=nextNo('tr','TR');
+    addStock(p.id,from,-q); addStock(p.id,to,q);
+    move('Transfer out',p.id,from,-q,no); move('Transfer in',p.id,to,q,no);
+    db.transfers.push({id:uid('t'),no,d:today(),pid:p.id,name:p.name,from,to,q});
+    audit(`Transfer ${no}`); save(); refresh(); toast('Transfer done');
+  });
+}
+function pAdjust(){
+  return `<div class="acts" style="justify-content:flex-start"><button class="btn p" onclick="newAdjust()">+ New adjustment</button></div>`+
+  tbl(['Date','Product','Shop','Type','Qty','Reason','User'],db.adjustments.slice().reverse().map(a=>[a.d,esc(a.name),esc(a.shop),esc(a.type),(a.q>0?'+':'')+a.q,esc(a.reason),esc(a.by)]));
+}
+function newAdjust(){
+  openForm('Stock adjustment',SEL('pid','Product',db.products.map(p=>[p.id,p.name]))+SEL('shop','Shop',SHOPS,currentShop)+
+    SEL('type','Type',['Increase','Decrease','Damage / write-off'])+F('q','Quantity',1,'number',1)+F('reason','Reason',''),(fd)=>{
+    const p=product(fd.get('pid')), shop=fd.get('shop'), type=fd.get('type'), q=parseInt(fd.get('q'))||0;
+    if(q<=0) return fail('Enter a quantity');
+    const delta=type==='Increase'?q:-q;
+    if(qty(p.id,shop)+delta<0) return fail('Stock cannot go below zero');
+    addStock(p.id,shop,delta);
+    db.adjustments.push({id:uid('a'),d:today(),pid:p.id,name:p.name,shop,type,q:delta,reason:fd.get('reason'),by:me.name});
+    move('Adjust',p.id,shop,delta,type); audit(`Adjustment ${p.sku} ${delta}`); save(); refresh(); toast('Adjustment saved');
+  });
+}
+function pCount(){
+  const rows=db.products.map(p=>{const sys=qty(p.id,countShop);return [esc(p.name),esc(p.sku),sys,`<input type="number" min="0" value="${sys}" data-cnt="${p.id}" data-sys="${sys}" style="width:90px">`];});
+  return `<div class="card"><div class="fg"><div class="field"><label>Shop to count</label><select onchange="countShop=this.value;refresh()">${SHOPS.map(s=>`<option ${s===countShop?'selected':''}>${s}</option>`).join('')}</select></div></div>
+    ${tbl(['Product','SKU','System qty','Physical count'],rows)}
+    <div class="acts"><button class="btn g" onclick="saveCount()">Save count and post variances</button></div></div>`;
+}
+function saveCount(){
+  let n=0;
+  document.querySelectorAll('[data-cnt]').forEach(inp=>{
+    const pid=inp.dataset.cnt, sys=num(inp.dataset.sys), phy=parseInt(inp.value)||0, v=phy-sys;
+    if(v!==0){
+      addStock(pid,countShop,v); const p=product(pid);
+      db.adjustments.push({id:uid('a'),d:today(),pid,name:p.name,shop:countShop,type:'Stock count',q:v,reason:'Physical count',by:me.name});
+      move('Count',pid,countShop,v,'COUNT'); n++;
+    }
+  });
+  audit(`Stock count ${countShop}: ${n} variance(s)`); save(); refresh(); toast(`Count saved · ${n} adjustment(s)`);
+}
+
+/* ================= SUPPLIERS, PURCHASES, GRN, REORDER ================= */
+function pSuppliers(){
+  return `<div class="acts" style="justify-content:flex-start"><button class="btn p" onclick="editSupplier()">+ Add supplier</button></div>`+
+  tbl(['Name','Phone','Email',''],db.suppliers.map(s=>[esc(s.name),esc(s.phone||'-'),esc(s.email||'-'),`<button class="btn s" onclick="editSupplier('${s.id}')">Edit</button>`]));
+}
+function editSupplier(id){
+  const s=id?db.suppliers.find(x=>x.id===id):{};
+  openForm(id?'Edit supplier':'New supplier',F('name','Name',s.name,'text',1)+F('phone','Phone',s.phone)+F('email','Email',s.email),(fd)=>{
+    const name=fd.get('name').trim(); if(!name) return fail('Name required');
+    const data={name,phone:fd.get('phone').trim(),email:fd.get('email').trim()};
+    if(id) Object.assign(s,data); else db.suppliers.push({id:uid('v'),...data});
+    audit('Saved supplier '+name); save(); refresh(); toast('Supplier saved');
+  });
+}
+function pPurchases(){
+  const act=p=>{
+    if(p.status==='Pending') return `<button class="btn s g" onclick="approvePO('${p.id}')">Approve</button>`;
+    if(p.status==='Approved') return `<button class="btn s p" onclick="receiveGRN('${p.id}')">Receive (GRN)</button>`;
+    if(p.status==='Received'&&!p.paid) return `<button class="btn s" onclick="payPO('${p.id}')">Pay supplier</button>`;
+    return '';
+  };
+  return `<div class="acts" style="justify-content:flex-start"><button class="btn p" onclick="newPO()">+ New purchase order</button></div>`+
+  tbl(['PO','Date','Supplier','Product','Qty','Unit cost','Total','Status','Paid',''],db.purchases.slice().reverse().map(p=>[p.no,p.d,esc(p.supName),esc(p.name),p.qty,money(p.unit),money(p.total),badge(p.status,p.status==='Received'?'ok':p.status==='Pending'?'warn':''),p.paid?badge('Paid','ok'):badge('Unpaid','warn'),act(p)]));
+}
+function newPO(pid,qtyDefault){
+  openForm('New purchase order',SEL('sup','Supplier',db.suppliers.map(s=>[s.id,s.name]))+SEL('pid','Product',db.products.map(p=>[p.id,p.name]),pid||'')+
+    F('qty','Quantity',qtyDefault||10,'number',1)+F('unit','Unit cost',pid?product(pid).cost:'','number',1),(fd)=>{
+    const sup=db.suppliers.find(s=>s.id===fd.get('sup')), p=product(fd.get('pid'));
+    const q=parseInt(fd.get('qty'))||0, unit=num(fd.get('unit'));
+    if(q<=0||unit<0) return fail('Check quantity and cost');
+    db.purchases.push({id:uid('po'),no:nextNo('po','PO'),d:today(),supId:sup.id,supName:sup.name,pid:p.id,name:p.name,qty:q,unit,total:r2(q*unit),status:'Pending',paid:false,payMethod:'',grn:''});
+    audit('PO created for '+p.sku); save(); refresh(); toast('PO created (pending approval)');
+  });
+}
+function approvePO(id){ const p=db.purchases.find(x=>x.id===id); p.status='Approved'; audit('Approved '+p.no); save(); refresh(); }
+function receiveGRN(id){
+  const po=db.purchases.find(x=>x.id===id), p=product(po.pid);
+  const before=total(p.id);
+  // Moving-average purchase cost
+  p.cost=before+po.qty>0?r2(((before*p.cost)+(po.qty*po.unit))/(before+po.qty)):po.unit;
+  addStock(p.id,'Warehouse',po.qty);
+  const grn={id:uid('g'),no:nextNo('grn','GRN'),d:today(),poNo:po.no,pid:p.id,name:p.name,qty:po.qty,supName:po.supName};
+  db.grns.push(grn); po.status='Received'; po.grn=grn.no;
+  move('GRN',p.id,'Warehouse',po.qty,grn.no); audit(`GRN ${grn.no} from ${po.no}`); save(); refresh(); toast('Stock received into Warehouse');
+}
+function payPO(id){
+  const po=db.purchases.find(x=>x.id===id);
+  openForm('Pay '+po.supName,SEL('m','Method',['Cash','Bank transfer'])+`<p class="mut">Amount: ${money(po.total)}</p>`,(fd)=>{
+    po.paid=true; po.payMethod=fd.get('m'); audit(`Paid ${po.no} ${money(po.total)}`); save(); refresh(); toast('Supplier payment recorded');
+  });
+}
+function pGRN(){
+  return tbl(['GRN','Date','PO','Supplier','Product','Qty received'],db.grns.slice().reverse().map(g=>[g.no,g.d,g.poNo,esc(g.supName),esc(g.name),g.qty]));
+}
+function pReorder(){
+  const low=db.products.filter(p=>total(p.id)<=p.reorder);
+  return `<div class="card"><h3>🤖 Suggested reorders</h3>${low.length?low.map(p=>`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 0;border-top:1px solid var(--line);flex-wrap:wrap">
+    <div><b>${esc(p.name)}</b> <span class="mut">${esc(p.sku)}</span><div class="mut">On hand ${total(p.id)} · reorder at ${p.reorder} · suggest ${Math.max(p.max-total(p.id),p.reorder)}</div></div>
+    <button class="btn s p" onclick="newPO('${p.id}',${Math.max(p.max-total(p.id),p.reorder)})">Create PO</button></div>`).join(''):'<p class="mut">Nothing needs reordering.</p>'}</div>`;
+}
+
+/* ================= FINANCE ================= */
+function pAccounts(){
+  const L=ledger();
+  return `<div class="grid">
+    ${kpi('Cash in hand',money(L.cash),'💵')}${kpi('Bank',money(L.bank),'🏦')}
+    ${kpi('eSewa (verified)',money(L.esewa),'📱')}${kpi('eSewa pending',money(L.esewaPending),'⏳')}
+    ${kpi('Receivable (dues)',money(L.recv),'📥')}${kpi('Payable (unpaid POs)',money(L.pay),'📤')}</div>
+    <div class="card"><p class="mut">Cash and bank are calculated from saved sales, returns, due collections, expenses and supplier payments. eSewa counts only after you verify it on the Invoices page.</p></div>`;
+}
+function pExpenses(){
+  return `<div class="acts" style="justify-content:flex-start"><button class="btn p" onclick="newExpense()">+ Add expense</button></div>`+
+  tbl(['Date','Category','Amount','Method','Note'],db.expenses.slice().reverse().map(e=>[e.d,esc(e.category),money(e.amount),esc(e.method),esc(e.note)]));
+}
+function newExpense(){
+  openForm('New expense',SEL('category','Category',['Rent','Salary','Electricity','Internet','Transport','Packaging','Marketing','Repairs','Other'])+
+    F('amount','Amount',0,'number',1)+SEL('method','Paid by',['Cash','Bank transfer'])+F('note','Note',''),(fd)=>{
+    const amt=num(fd.get('amount')); if(amt<=0) return fail('Enter an amount');
+    db.expenses.push({id:uid('e'),d:today(),category:fd.get('category'),amount:amt,method:fd.get('method'),note:fd.get('note').trim()});
+    audit('Expense '+money(amt)); save(); refresh(); toast('Expense saved');
+  });
+}
+let plRange=null;
+function pPL(){
+  const f=plRange?plRange[0]:plFrom, t=plRange?plRange[1]:plTo;
+  const p=pnl(f,t);
+  return `<div class="card"><div class="fg">
+      <div class="field"><label>From</label><input type="date" value="${f}" onchange="plFrom=this.value;plRange=[plFrom,plTo];refresh()"></div>
+      <div class="field"><label>To</label><input type="date" value="${t}" onchange="plTo=this.value;plRange=[plFrom,plTo];refresh()"></div></div></div>
+    <div class="grid">${kpi('Net revenue (ex tax)',money(p.rev),'💰')}${kpi('Cost of goods sold',money(p.cogs),'📦')}${kpi('Gross profit',money(p.gross),'📈')}${kpi('Expenses',money(p.exp),'💸')}${kpi('Net profit',money(p.net),'🏁')}</div>
+    <div class="card"><p class="mut">Net revenue excludes tax and deducts returns. COGS uses landed cost at the time of each sale.</p></div>`;
+}
+
+/* ================= REPORTS ================= */
+function reportData(type,f,t){
+  if(type==='sales'){
+    const S=db.sales.filter(s=>inR(s.d,f,t));
+    return {h:['Invoice','Date','Shop','Customer','Total','Paid','Due','Payment','Status'],r:S.map(s=>[s.no,s.d,s.shop,s.cust,s.total,s.paid,s.due,s.pay,s.status])};
+  }
+  if(type==='products'){
+    const S=db.sales.filter(s=>inR(s.d,f,t));
+    return {h:['Product','SKU','Qty sold','Revenue (ex tax)','Cost','Profit','Margin %'],r:db.products.map(p=>{
+      let q=0,rev=0,cost=0;
+      S.forEach(s=>s.items.forEach(i=>{ if(i.pid===p.id){ q+=i.qty; rev+=i.qty*i.price*(1-s.disc/100); cost+=i.qty*i.cost; }}));
+      const profit=rev-cost; return [p.name,p.sku,q,r2(rev),r2(cost),r2(profit),rev?r2(profit/rev*100):0];
+    }).filter(r=>r[2]>0)};
+  }
+  if(type==='stock') return {h:['Product','SKU','On hand','Cost','Value'],r:db.products.map(p=>[p.name,p.sku,total(p.id),r2(landed(p)),r2(total(p.id)*landed(p))])};
+  if(type==='purchases') return {h:['PO','Date','Supplier','Product','Qty','Total','Status','Paid'],r:db.purchases.filter(p=>inR(p.d,f,t)).map(p=>[p.no,p.d,p.supName,p.name,p.qty,p.total,p.status,p.paid?'Yes':'No'])};
+  if(type==='expenses') return {h:['Date','Category','Amount','Method','Note'],r:db.expenses.filter(e=>inR(e.d,f,t)).map(e=>[e.d,e.category,e.amount,e.method,e.note])};
+  if(type==='dues') return {h:['Customer','Phone','Due','Total spent','Points'],r:db.customers.map(c=>[c.name,c.phone,c.due,c.spent,c.points])};
+}
+function pReports(){
+  const d=reportData(repType,repFrom,repTo);
+  return `<div class="card"><div class="fg">
+      <div class="field"><label>Report</label><select onchange="repType=this.value;refresh()">
+        ${[['sales','Sales register'],['products','Product profitability'],['stock','Stock valuation'],['purchases','Purchases'],['expenses','Expenses'],['dues','Customer dues']].map(([k,l])=>`<option value="${k}" ${k===repType?'selected':''}>${l}</option>`).join('')}</select></div>
+      <div class="field"><label>From</label><input type="date" value="${repFrom}" onchange="repFrom=this.value;refresh()"></div>
+      <div class="field"><label>To</label><input type="date" value="${repTo}" onchange="repTo=this.value;refresh()"></div>
+    </div>
+    <div class="acts" style="justify-content:flex-start"><button class="btn g" onclick="exportReport()">📊 Export Excel</button><button class="btn" onclick="exportCSV()">⬇️ CSV</button></div></div>
+    ${tbl(d.h,d.r.map(r=>r.map(c=>typeof c==='number'?money(c).replace('NPR ',''):esc(c))))}`;
+}
+function exportReport(){
+  const d=reportData(repType,repFrom,repTo);
+  if(!window.XLSX) return exportCSV();
+  const ws=XLSX.utils.aoa_to_sheet([d.h,...d.r]); const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'Report'); XLSX.writeFile(wb,`msbag_${repType}_${repFrom}_${repTo}.xlsx`);
+}
+function exportCSV(){
+  const d=reportData(repType,repFrom,repTo);
+  const csv=[d.h,...d.r].map(r=>r.map(c=>`"${String(c??'').replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download=`msbag_${repType}_${repFrom}_${repTo}.csv`; a.click();
+}
+
+/* ================= SETTINGS, USERS, AUDIT, BACKUP ================= */
+function pSettings(){
+  const C=db.settings;
+  return `<div class="card"><h3>Company</h3>
+    <form onsubmit="saveSettings(event)"><div class="fg">
+      ${F('company','Company name',C.company)}${F('phone','Phone',C.phone)}${F('address','Address',C.address)}${F('tax','Default tax %',C.tax,'number')}
+      ${TA('footer','Invoice footer',C.footer)}</div>
+      <div class="acts"><button class="btn p">Save settings</button></div></form></div>
+    <div class="card"><h3>Users</h3><div class="acts" style="justify-content:flex-start"><button class="btn p" onclick="newUser()">+ Add user</button></div>
+    ${tbl(['Username','Name','Role','Shop',''],db.users.map(u=>[esc(u.user),esc(u.name),ROLES[u.role].name,esc(u.shop),u.id===me.id?'':`<button class="btn s d" onclick="delUser('${u.id}')">Remove</button>`]))}</div>
+    <div class="card"><h3>Backup & restore</h3>
+      <div class="acts" style="justify-content:flex-start"><button class="btn g" onclick="exportBackup()">⬇️ Download backup</button>
+      <label class="btn" style="margin:0;cursor:pointer">⬆️ Restore file<input type="file" accept=".json" onchange="importBackup(this)" style="display:none"></label>
+      <button class="btn d" onclick="resetAll()">Factory reset</button></div>
+      <p class="mut">Backups contain all records. Download one at least weekly, because data lives in this browser.</p></div>
+    <div class="card"><h3>Audit log</h3>${tbl(['Time','User','Action'],db.audit.slice(0,100).map(a=>[a.t,esc(a.u),esc(a.a)]))}</div>`;
+}
+function saveSettings(e){
+  e.preventDefault(); const fd=new FormData(e.target), C=db.settings;
+  C.company=fd.get('company').trim(); C.phone=fd.get('phone').trim(); C.address=fd.get('address').trim();
+  C.tax=num(fd.get('tax')); C.footer=fd.get('footer').trim();
+  audit('Settings saved'); save(); toast('Settings saved');
+}
+function newUser(){
+  openForm('New user',F('name','Full name','',"text",1)+F('user','Username','','text',1)+F('pass','Password','','password',1)+
+    SEL('role','Role',roleOptions())+SEL('shop','Home shop',SHOPS),(fd)=>{
+    const user=fd.get('user').trim();
+    if(db.users.some(u=>u.user===user)) return fail('Username already exists');
+    db.users.push({id:uid('u'),user,pass:btoa(fd.get('pass')),name:fd.get('name').trim(),role:fd.get('role'),shop:fd.get('shop')});
+    audit('Added user '+user); save(); refresh(); toast('User added');
+  });
+}
+function delUser(id){ if(!confirm('Remove this user?')) return; db.users=db.users.filter(u=>u.id!==id); audit('Removed a user'); save(); refresh(); }
+function exportBackup(){
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(db)],{type:'application/json'}));
+  a.download='msbag-backup-'+today()+'.json'; a.click();
+}
+function importBackup(input){
+  const file=input.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=()=>{
+    try{ const d=JSON.parse(reader.result); if(!Array.isArray(d.products)||!Array.isArray(d.sales)) throw 0;
+      db=d; save(); toast('Backup restored'); logout(); }
+    catch(e){ toast('That file is not a valid MS Bag Shop backup'); }
+  };
+  reader.readAsText(file);
+}
+function resetAll(){ if(!confirm('Erase ALL data and restore demo data?')) return; if(!confirm('Are you sure? Download a backup first.')) return; db=seed(); save(); logout(); }
+
+/* ===== v4: store lock, photo upload, price management, barcode labels ===== */
+function locked(){ return !!me && (me.role==='manager'||me.role==='cashier'||me.role==='salesman'); }
+function visShops(){ return locked()?[me.shop]:SHOPS; }
+function pDashLite(){
+  const sh=me.shop, t=today(), S=db.sales.filter(s=>s.shop===sh);
+  const low=db.products.filter(x=>qty(x.id,sh)<=x.reorder);
+  return `<div class='grid'>${kpi('Sales today · '+esc(sh),money(sum(S.filter(s=>s.d===t),'total')),'💵')}${kpi('Sales this month',money(sum(S.filter(s=>s.d.startsWith(t.slice(0,7))),'total')),'📈')}${kpi('Low / out of stock here',low.length,'⚠️')}</div>
+  <div class='card'><h3>Low stock in ${esc(sh)}</h3>${tbl(['Product','On hand','Reorder'],low.map(x=>[esc(x.name),qty(x.id,sh),x.reorder]))}</div>
+  <div class='card'><h3>Recent sales</h3>${tbl(['Invoice','Customer','Total','Status'],S.slice(-6).reverse().map(s=>[s.no,esc(s.cust),money(s.total),statusBadge(s.status)]))}</div>`;
+}
+function pickImg(inp){
+  const f=inp.files[0]; if(!f) return;
+  const rd=new FileReader();
+  rd.onload=()=>{ const im=new Image();
+    im.onload=()=>{ const k=Math.min(1,480/Math.max(im.width,im.height)), c=document.createElement('canvas');
+      c.width=Math.round(im.width*k); c.height=Math.round(im.height*k);
+      c.getContext('2d').drawImage(im,0,0,c.width,c.height);
+      const fm=$('mf'); fm.elements.image.value=c.toDataURL('image/jpeg',0.72); pcUpdate(fm); toast('Photo added. Save the product to keep it.'); };
+    im.onerror=()=>toast('Could not read that image'); im.src=rd.result; };
+  rd.readAsDataURL(f);
+}
+/* Price management */
+function pPrices(){
+  const pc=(a,b)=>b>0?(a/b*100).toFixed(1)+'%':'-';
+  const H=(db.priceHist||[]).slice().reverse().slice(0,100);
+  return `<div class='card'><p class='mut'>Margin = profit ÷ price. Markup = profit ÷ cost. Prices exclude tax and are estimates until final cost is confirmed. Changing a price never alters old invoices.</p></div>`+
+  tbl(['Product','Landed cost','Retail','Wholesale','Minimum','Margin','Markup',''],db.products.map(p=>{const g=p.price-landed(p);return [esc(p.name),money(landed(p)),money(p.price),money(p.wholesale),money(p.minp),pc(g,p.price),pc(g,landed(p)),`<button class='btn s' data-id='${p.id}' onclick='editPrice(this.dataset.id)'>Change</button>`];}))+
+  `<div class='card'><h3>Price history</h3>${tbl(['Date','Product','Old retail','New retail','Wholesale','Minimum','Reason','By'],H.map(h=>[h.d,esc(h.name),money(h.oldP),money(h.newP),money(h.w),money(h.mn),esc(h.reason),esc(h.by)]))}</div>`;
+}
+function editPrice(id){
+  const p=product(id);
+  openForm('Change price · '+p.name,`<p class='mut'>Landed cost ${money(landed(p))}</p>`+F('price','Retail price (before tax)',p.price,'number',1)+F('wholesale','Wholesale price',p.wholesale,'number')+F('minp','Minimum permitted price',p.minp,'number')+F('reason','Reason for change','','text',1),(fd)=>{
+    const price=num(fd.get('price')), w=num(fd.get('wholesale')), mn=num(fd.get('minp')), reason=fd.get('reason').trim();
+    if(price<=0) return fail('Enter a retail price');
+    if(mn>price) return fail('Minimum cannot be higher than the retail price');
+    if(!reason) return fail('Enter a reason');
+    if(price<landed(p)&&!confirm('This price is below landed cost. Save anyway?')) return false;
+    (db.priceHist=db.priceHist||[]).push({d:new Date().toLocaleString(),pid:id,name:p.name,oldP:p.price,newP:price,w,mn,reason,by:me.name});
+    Object.assign(p,{price,wholesale:w,minp:mn}); audit('Price change '+p.sku); save(); refresh(); toast('Price updated');
+  });
+}
+/* Barcode (Code 128-B) and labels */
+const C128='212222 222122 222221 121223 121322 131222 122213 122312 132212 221213 221312 231212 112232 122132 122231 113222 123122 123221 223211 221132 221231 213212 223112 312131 311222 321122 321221 312212 322112 322211 212123 212321 232121 111323 131123 131321 112313 132113 132311 211313 231113 231311 112133 112331 132131 113123 113321 133121 313121 211331 231131 213113 213311 213131 311123 311321 331121 312113 312311 332111 314111 221411 431111 111224 111422 121124 121421 141122 141221 112214 112412 122114 122411 142112 142211 241211 221114 413111 241112 134111 111242 121142 121241 114212 124112 124211 411212 421112 421211 212141 214121 412121 111143 111341 131141 114113 114311 411113 411311 113141 114131 311141 411131 211412 211214 211232 2331112'.split(' ');
+function bc128(t,h){
+  t=[...String(t)].filter(ch=>ch>=' '&&ch<='~').join('');
+  const v=[104]; let s=104;
+  for(let i=0;i<t.length;i++){ const c=t.charCodeAt(i)-32; v.push(c); s+=c*(i+1); }
+  v.push(s%103,106);
+  let x=10, r='';
+  v.forEach(c=>{ const p=C128[c]; for(let i=0;i<p.length;i++){ const w=+p[i]; if(i%2===0) r+=`<rect x='${x}' y='0' width='${w}' height='${h}'/>`; x+=w; } });
+  return `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 ${x+10} ${h}' preserveAspectRatio='none' style='width:100%;height:${h}px;fill:#000;display:block'>${r}</svg>`;
+}
+const lab={sel:{},tpl:'3',price:'retail',mode:'custom',n:1,tax:false};
+const optS=(k,l,o)=>`<div class='field'><label>${l}</label><select onchange='lab.${k}=this.value'>${o.map(([v,t])=>`<option value='${v}' ${String(lab[k])===v?'selected':''}>${t}</option>`).join('')}</select></div>`;
+function labAll(v){ db.products.forEach(p=>lab.sel[p.id]=v); refresh(); }
+function labCount(j){ return j.ids.reduce((a,id)=>a+(product(id)?(j.mode==='stock'?qty(id,j.shop):j.n):0),0); }
+function labelHTML(j){
+  const cols=+j.tpl||3, bh={3:26,2:38,1:54}[cols]||26; let out='';
+  j.ids.forEach(id=>{ const p=product(id); if(!p) return;
+    const n=j.mode==='stock'?qty(id,j.shop):j.n;
+    const base=j.price==='wholesale'?p.wholesale:p.price, price=j.tax?base*(1+p.tax/100):base;
+    for(let i=0;i<n;i++) out+=`<div class='lab'><b>${esc(db.settings.company)}</b><div>${esc(p.name)}</div><div style='color:#444'>${esc(p.color)} ${esc(p.size)}</div>${bc128(p.sku,bh)}<div style='font-size:10px'>${esc(p.sku)}</div><div style='font-size:15px;font-weight:700'>${money(price)}${j.tax?' <small>incl. tax</small>':''}</div></div>`;
+  });
+  return `<div id='printArea'><div class='sheet' style='grid-template-columns:repeat(${cols},1fr)'>${out}</div></div>`;
+}
+function previewLabels(job){
+  job=job||{ids:Object.keys(lab.sel).filter(k=>lab.sel[k]),tpl:lab.tpl,price:lab.price,mode:lab.mode,n:Math.max(1,parseInt(lab.n)||1),tax:lab.tax,shop:currentShop};
+  if(!job.ids.length) return toast('Select at least one product');
+  const cnt=labCount(job);
+  if(!cnt) return toast('No labels to print (quantity is zero)');
+  if(cnt>300&&!confirm('This will print '+cnt+' labels. Continue?')) return;
+  window._job=job; $('mt').textContent='Label preview · '+cnt+' labels';
+  $('mb').innerHTML=labelHTML(job)+`<div class='acts'><button class='btn p' onclick='doPrint()'>🖨️ Print / Save PDF</button></div>`;
+  $('modal').classList.add('show');
+}
+function doPrint(){
+  (db.printJobs=db.printJobs||[]).push({d:new Date().toLocaleString(),by:me.name,count:labCount(window._job),products:window._job.ids.length,job:window._job});
+  audit('Printed labels'); save(); window.print();
+}
+function pLabels(){
+  const J=db.printJobs||[];
+  return `<div class='card'><div class='fg'>${optS('tpl','Label size',[['3','Small · 3 per row'],['2','Medium · 2 per row'],['1','Large · 1 per row']])}${optS('price','Price shown',[['retail','Retail'],['wholesale','Wholesale']])}${optS('mode','Quantity',[['custom','Copies per product'],['stock','One per unit in stock here']])}<div class='field'><label>Copies per product</label><input type='number' min='1' value='${lab.n}' onchange='lab.n=this.value'></div><div class='field'><label><input type='checkbox' style='width:auto' ${lab.tax?'checked':''} onchange='lab.tax=this.checked'> Show tax-inclusive price</label></div></div>
+  <p class='mut'>Labels show name, colour/size, SKU barcode (Code 128) and price. Costs and supplier details are never printed. Printing does not change stock or accounts. SKU barcodes are internal codes, not officially assigned retail barcodes.</p>
+  <div class='acts' style='justify-content:flex-start'><button class='btn' onclick='labAll(true)'>Select all</button><button class='btn' onclick='labAll(false)'>Clear</button><button class='btn g' onclick='previewLabels()'>Preview and print</button></div></div>`+
+  tbl(['','Product','SKU','Price','In '+esc(currentShop)],db.products.map(p=>[`<input type='checkbox' data-id='${p.id}' ${lab.sel[p.id]?'checked':''} onchange='lab.sel[this.dataset.id]=this.checked'>`,esc(p.name),esc(p.sku),money(p.price),qty(p.id,currentShop)]))+
+  `<div class='card'><h3>Print history</h3>${tbl(['Date','By','Labels','Products',''],J.slice().reverse().slice(0,30).map((j,i)=>[j.d,esc(j.by),j.count,j.products,`<button class='btn s' data-i='${J.length-1-i}' onclick='previewLabels(db.printJobs[this.dataset.i].job)'>Reprint</button>`]))}</div>`;
+}
+
+/* ================= GLOBAL SEARCH & ITEM HISTORY ================= */
+function pSearch(){
+  return `<div class='card'><h3>🔎 Global Search</h3><input id='gq' placeholder='Search orders, products, barcodes, invoices, customers, suppliers, and item history...' oninput='doSearch(this.value)' style='font-size:16px;padding:12px'><p class='mut' style='margin:8px 0 0'>Type a name, SKU, barcode, invoice number, customer or supplier. A barcode scanner that types the code and presses Enter also works.</p></div><div id='sres'></div>`;
+}
+function doSearch(v){
+  const q=v.trim().toLowerCase(), out=$('sres');
+  if(!q){ out.innerHTML=`<p class='mut'>Start typing to search.</p>`; return; }
+  const has=t=>!!t&&String(t).toLowerCase().includes(q);
+  const sh=visShops(), rows=[];
+  if(canSee('products')||canSee('pos')) db.products.forEach(p=>{
+    if([p.name,p.sku,p.barcode,p.id,p.cat,p.color,p.size].some(has)) rows.push(['Product',`<b>${esc(p.name)}</b><div class='mut'>${esc(p.sku)} · ${esc(p.barcode)} · ${sh.map(s=>esc(s)+': '+qty(p.id,s)).join(' · ')}</div>`,`<button class='btn s' onclick="openHistory('${p.id}')">Item history</button>`]);
+  });
+  if(canSee('invoices')) db.sales.forEach(s=>{
+    if(!sh.includes(s.shop)) return;
+    if(has(s.no)||has(s.cust)||has(s.ref)||s.items.some(i=>has(i.name))) rows.push(['Invoice',`<b>${s.no}</b><div class='mut'>${s.d} · ${esc(s.cust)} · ${esc(s.shop)} · ${money(s.total)} · ${esc(s.pay)}${s.ref?' · ref '+esc(s.ref):''}</div>`,`<button class='btn s' onclick="showInvoice('${s.id}')">Open</button>`]);
+  });
+  if(canSee('customers')) db.customers.forEach(c=>{ if(has(c.name)||has(c.phone)) rows.push(['Customer',`<b>${esc(c.name)}</b><div class='mut'>${esc(c.phone||'-')} · due ${money(c.due)}</div>`,'']); });
+  if(canSee('suppliers')) db.suppliers.forEach(s=>{ if(has(s.name)||has(s.phone)) rows.push(['Supplier',`<b>${esc(s.name)}</b><div class='mut'>${esc(s.phone||'-')}</div>`,'']); });
+  if(canSee('purchases')) db.purchases.forEach(p=>{ if(has(p.no)||has(p.supName)||has(p.name)) rows.push(['Purchase',`<b>${p.no}</b><div class='mut'>${p.d} · ${esc(p.supName)} · ${esc(p.name)} × ${p.qty} · ${p.status}</div>`,'']); });
+  if(canSee('returns')) db.returns.forEach(r=>{ if(!sh.includes(r.shop)) return; if(has(r.no)||has(r.saleNo)) rows.push(['Return',`<b>${r.no}</b><div class='mut'>against ${r.saleNo} · ${money(r.total)}</div>`,'']); });
+  if(canSee('transfers')) db.transfers.forEach(t=>{ if(has(t.no)||has(t.name)) rows.push(['Transfer',`<b>${t.no}</b><div class='mut'>${esc(t.name)} · ${esc(t.from)} → ${esc(t.to)} · ${t.q}</div>`,'']); });
+  out.innerHTML = rows.length ? tbl(['Type','Match','Action'],rows.slice(0,100)) : `<p class='mut'>No matches. Try a SKU, barcode, invoice number, or customer name.</p>`;
+}
+function openHistory(pid){
+  const p=product(pid); if(!p) return;
+  const sh=visShops(), isCash=me.role==='cashier'||me.role==='salesman';
+  const scopeNow=sh.reduce((a,s)=>a+qty(pid,s),0);
+  const all=db.moves.filter(m=>m.pid===pid&&sh.includes(m.shop));
+  const opening=scopeNow-all.reduce((a,m)=>a+m.q,0);
+  let body;
+  if(isCash){
+    body=tbl(['Date','Type','Reference','Shop','In','Out'],all.filter(m=>m.t==='Sale'||m.t==='Return').slice().reverse().map(m=>[m.d,esc(m.t),esc(m.ref),esc(m.shop),m.q>0?m.q:'',m.q<0?-m.q:'']));
+  } else {
+    let bal=opening;
+    const rows=[['—','Opening (before tracked movements)','—',sh.length>1?'All visible shops':esc(sh[0]),'','',opening,'']];
+    all.forEach(m=>{ bal+=m.q; rows.push([m.d,esc(m.t),esc(m.ref),esc(m.shop),m.q>0?m.q:'',m.q<0?-m.q:'',bal,esc(m.u)]); });
+    body=tbl(['Date','Type','Reference','Shop','In','Out','Balance','By'],rows);
+  }
+  $('mt').textContent='Item history · '+p.name;
+  $('mb').innerHTML=`<p class='mut'>${esc(p.sku)} · ${esc(p.barcode)}</p>${tbl(['Shop','Stock now'],sh.map(s=>[esc(s),qty(pid,s)]))}<h3 style='margin-top:12px'>Movements</h3>${body}<p class='mut'>History covers movements recorded in this browser. Stock that existed before tracking began appears as the opening balance.</p>`;
+  $('modal').classList.add('show');
+}
+
+/* ===== v4 ADDITIONS (START): roles, supply chain, forecast, analytics, performance, printers ===== */
+Object.assign(ROLES,{
+  salesman:{name:'Salesman',pages:['dash','search','pos','invoices','products','performance']},
+  buyer:{name:'Buyer',pages:['dash','search','products','stock','suppliers','purchases','grn','reorder','supply','forecast']}
+});
+ROLES.cashier.pages.push('printers');
+ROLES.manager.pages.push('performance','analytics');
+function roleOptions(){ return Object.keys(ROLES).map(k=>[k,ROLES[k].name]); }
+function applyCustomRoles(){ (db.customRoles||[]).forEach(r=>{ if(r.key!=='owner') ROLES[r.key]={name:r.name,pages:r.pages}; }); }
+const FC={lead:14,safety:7};
+
+/* Salesman dashboard: own sales only */
+function pDashSalesman(){
+  const t=today(), m=t.slice(0,7);
+  const mine=db.sales.filter(s=>s.by===me.name&&s.status!=='Cancelled');
+  const day=mine.filter(s=>s.d===t), month=mine.filter(s=>s.d.startsWith(m));
+  return `<div class='card' style='background:linear-gradient(135deg,#0a1628,#1d4ed8);color:#fff;text-align:center;padding:22px'>
+    <div style='font-size:14px;opacity:.85'>My sales today · ${esc(me.shop)}</div>
+    <div style='font-size:32px;font-weight:800'>${money(sum(day,'total'))}</div></div>
+  <div class='grid'>${kpi('My orders today',day.length,'')}${kpi('My sales this month',money(sum(month,'total')),'')}${kpi('My average order',money(month.length?sum(month,'total')/month.length:0),'')}</div>
+  <div class='card'><h3>My recent sales</h3>${tbl(['Invoice','Date','Customer','Total','Status'],mine.slice(-10).reverse().map(s=>[s.no,s.d,esc(s.cust),money(s.total),statusBadge(s.status)]))}</div>`;
+}
+
+/* Products: salesman sees a read-only catalogue without costs */
+function pProductsRole(){
+  if(me.role!=='salesman') return pProducts();
+  return tbl(['Photo','Product','SKU / Barcode','Price','Stock in '+me.shop],db.products.filter(p=>p.status==='Active').map(p=>[thumb(p),`<b>${esc(p.name)}</b><div class='mut'>${esc(p.cat)} ${esc(p.color)} ${esc(p.size)}</div>`,`${esc(p.sku)}<div class='mut'>${esc(p.barcode)}</div>`,money(p.price),qty(p.id,me.shop)]));
+}
+
+/* Supply chain: pipeline and supplier scorecard from purchase records */
+function pSupply(){
+  const P=db.purchases;
+  const st=k=>P.filter(p=>p.status===k);
+  const rows=db.suppliers.map(s=>{
+    const mine=P.filter(p=>p.supId===s.id), recv=mine.filter(p=>p.status==='Received'), open=mine.filter(p=>p.status!=='Received');
+    return [esc(s.name),mine.length,open.length,recv.length,money(sum(mine,'total')),money(sum(recv.filter(p=>!p.paid),'total'))];
+  });
+  return `<div class='grid'>${kpi('Pending approval',st('Pending').length,'')}${kpi('Approved, awaiting goods',st('Approved').length,'')}${kpi('Received',st('Received').length,'')}${kpi('Unpaid supplier value',money(sum(P.filter(p=>p.status==='Received'&&!p.paid),'total')),'')}</div>
+  <div class='card'><h3>Supplier scorecard</h3>${tbl(['Supplier','POs','Open','Received','Total value','Unpaid'],rows)}</div>
+  <div class='card'><h3>Open purchase pipeline</h3>${tbl(['PO','Supplier','Product','Qty','Status','Value'],P.filter(p=>p.status!=='Received').map(p=>[p.no,esc(p.supName),esc(p.name),p.qty,p.status,money(p.total)]))}</div>
+  <p class='mut'>Lead times and delivery dates are not recorded yet, so late deliveries cannot be measured.</p>`;
+}
+
+/* Forecast: daily average from the last 30 days of recorded sales */
+function pForecast(){
+  const day=864e5, now=Date.now(), sh=visShops();
+  const sales=db.sales.filter(s=>sh.includes(s.shop)&&s.status!=='Cancelled');
+  const age=d=>(now-new Date(d).getTime())/day;
+  const hist=sales.length?Math.max(1,Math.ceil(Math.max(...sales.map(s=>age(s.d))))):0;
+  const sold=(p,lo,hi)=>sales.filter(s=>age(s.d)>=lo&&age(s.d)<hi).reduce((a,s)=>a+s.items.filter(i=>i.pid===p.id).reduce((b,i)=>b+i.qty,0),0);
+  const rows=db.products.map(p=>{
+    const s30=sold(p,0,30), last=sold(p,0,14), prev=sold(p,14,28);
+    const stock=sh.reduce((a,s)=>a+qty(p.id,s),0);
+    const daily=s30/30;
+    const need=Math.max(0,Math.ceil(daily*(FC.lead+FC.safety)-stock));
+    const trend=prev>0?((last-prev)/prev*100).toFixed(0)+'%':(last>0?'new':'-');
+    const cover=daily>0?(stock/daily).toFixed(0)+' days':'no sales';
+    return [esc(p.name),esc(p.sku),s30,daily.toFixed(2),stock,cover,trend,need,need>0?`<button class='btn s p' onclick=\"newPO('${p.id}',${need})\">Create PO</button>`:'-'];
+  });
+  return `<div class='card'><p class='mut'>Daily average = units sold in the last 30 days ÷ 30. Suggested order = daily average × (${FC.lead} lead days + ${FC.safety} safety days) − stock on hand. Sales history available: ${hist} day(s).${hist<30?' Under 30 days of history, so treat this as provisional.':''}</p></div>`+
+  tbl(['Product','SKU','Sold 30d','Daily avg','On hand','Cover','Trend (14d vs prior)','Suggest order',''],rows);
+}
+
+/* Customer analytics: segments, repeat rate, favourite items */
+function pAnalytics(){
+  const day=864e5, now=Date.now(), sh=visShops();
+  const sales=db.sales.filter(s=>sh.includes(s.shop)&&s.status!=='Cancelled');
+  const seg=last=>{ if(!last) return 'No purchase'; const d=(now-new Date(last).getTime())/day; return d<=30?'Active':d<=90?'At risk':'Lapsed'; };
+  const rows=db.customers.map(c=>{
+    const mine=sales.filter(s=>s.custId===c.id);
+    const spent=sum(mine,'total'), last=mine.length?mine.map(s=>s.d).sort().slice(-1)[0]:null;
+    const byItem={}; mine.forEach(s=>s.items.forEach(i=>{ byItem[i.name]=(byItem[i.name]||0)+i.qty; }));
+    const fav=Object.keys(byItem).sort((a,b)=>byItem[b]-byItem[a])[0]||'-';
+    return {c,n:mine.length,spent,last,fav,seg:seg(last)};
+  }).sort((a,b)=>b.spent-a.spent);
+  const buyers=rows.filter(r=>r.n>0), repeat=buyers.filter(r=>r.n>=2).length;
+  const count=k=>rows.filter(r=>r.seg===k).length;
+  const avg=sales.length?sum(sales,'total')/sales.length:0;
+  return `<div class='grid'>${kpi('Customers',db.customers.length,'')}${kpi('Active (30 days)',count('Active'),'')}${kpi('At risk (31-90 days)',count('At risk'),'')}${kpi('Lapsed (90+ days)',count('Lapsed'),'')}${kpi('Repeat buyer rate',buyers.length?(repeat/buyers.length*100).toFixed(0)+'%':'-','')}${kpi('Average order',money(avg),'')}</div>
+  <div class='card'><h3>Customers</h3>${tbl(['Customer','Phone','Segment','Orders','Total spent','Avg order','Last purchase','Favourite item','Due'],rows.map(r=>[esc(r.c.name),esc(r.c.phone||'-'),r.seg,r.n,money(r.spent),money(r.n?r.spent/r.n:0),r.last||'-',esc(r.fav),money(r.c.due)]))}</div>`;
+}
+
+/* Performance: staff and product reports with photos */
+function pPerformance(){
+  const sh=visShops();
+  let sales=db.sales.filter(s=>sh.includes(s.shop)&&s.status!=='Cancelled');
+  if(me.role==='salesman') sales=sales.filter(s=>s.by===me.name);
+  const returns=me.role==='salesman'?[]:db.returns.filter(r=>sh.includes(r.shop));
+  const people={};
+  sales.forEach(s=>{ const k=s.by||'Unknown'; people[k]=people[k]||{n:0,total:0,units:0}; people[k].n++; people[k].total+=s.total; people[k].units+=s.items.reduce((a,i)=>a+i.qty,0); });
+  const staffRows=Object.entries(people).sort((a,b)=>b[1].total-a[1].total).map(([name,v],i)=>[i+1,esc(name),v.n,v.units,money(v.total),money(v.n?v.total/v.n:0)]);
+  const prod={};
+  sales.forEach(s=>s.items.forEach(i=>{ prod[i.pid]=prod[i.pid]||{qty:0,rev:0}; prod[i.pid].qty+=i.qty; prod[i.pid].rev+=i.qty*i.price; }));
+  const top=Object.entries(prod).sort((a,b)=>b[1].rev-a[1].rev).slice(0,15).map(([pid,v])=>{ const p=product(pid); return [p?thumb(p):'',p?esc(p.name):'(deleted)',p?esc(p.sku):'',v.qty,money(v.rev)]; });
+  return `<div class='grid'>${kpi('Sales in view',money(sum(sales,'total')),'')}${kpi('Orders',sales.length,'')}${kpi('Average order',money(sales.length?sum(sales,'total')/sales.length:0),'')}${me.role==='salesman'?'':kpi('Returns in view',money(sum(returns,'total')),'')}</div>
+  <div class='card'><h3>Staff performance</h3>${tbl(['#','Staff','Orders','Units','Sales','Average order'],staffRows)}</div>
+  <div class='card'><h3>Top products (sales before discounts)</h3>${tbl(['Photo','Product','SKU','Units','Revenue'],top)}</div>
+  <div class='acts'><button class='btn' onclick='window.print()'>Print report</button></div>`;
+}
+
+/* Printers: browser, USB (WebUSB), Bluetooth (Web Bluetooth), network (bridge) */
+function prn(){ return db.settings.printer||(db.settings.printer={type:'browser',width:'80',ip:'',status:''}); }
+function setPrn(k,v){ const P=prn(); P[k]=v; if(k==='type') P.status=''; save(); }
+function prnMsg(m){ const el=$('prnStatus'); if(el) el.textContent='Status: '+m; toast(m); }
+let usbDev=null, usbEp=null, btChar=null;
+async function connectPrinter(){
+  const P=prn();
+  try{
+    if(P.type==='usb'){
+      if(!navigator.usb) return prnMsg('WebUSB is not available. Use Chrome or Edge.');
+      usbDev=await navigator.usb.requestDevice({filters:[]});
+      await usbDev.open();
+      if(!usbDev.configuration) await usbDev.selectConfiguration(1);
+      let f=null;
+      usbDev.configuration.interfaces.forEach(itf=>itf.alternates.forEach(alt=>{ if(!f){ const ep=alt.endpoints.find(e=>e.direction==='out'); if(ep) f={itf:itf.interfaceNumber,ep:ep.endpointNumber}; } }));
+      if(!f) return prnMsg('No output endpoint found on this device.');
+      await usbDev.claimInterface(f.itf); usbEp=f.ep;
+      P.status='USB printer connected'; save(); return prnMsg(P.status);
+    }
+    if(P.type==='bluetooth'){
+      if(!navigator.bluetooth) return prnMsg('Web Bluetooth is not available. Use Chrome on Android or Windows.');
+      const dev=await navigator.bluetooth.requestDevice({acceptAllDevices:true,optionalServices:[0xff00,0xfff0,0x18f0]});
+      const srv=await dev.gatt.connect();
+      let ch=null;
+      for(const s of await srv.getPrimaryServices()){ for(const c of await s.getCharacteristics()){ if(!ch&&(c.properties.write||c.properties.writeWithoutResponse)) ch=c; } }
+      if(!ch) return prnMsg('No writable channel found. Check the printer model.');
+      btChar=ch; P.status='Bluetooth printer connected'; save(); return prnMsg(P.status);
+    }
+    if(P.type==='network') return prnMsg('Network printers cannot be reached from a web page. Install a local print bridge on the shop computer, or use browser printing.');
+    return prnMsg('Browser printing uses the normal print dialog and works with any installed printer.');
+  }catch(e){ return prnMsg('Connection failed: '+e.message); }
+}
+async function sendRaw(bytes){
+  const P=prn();
+  if(P.type==='usb'){ if(!usbDev) throw new Error('printer not connected'); await usbDev.transferOut(usbEp,new Uint8Array(bytes)); return; }
+  if(P.type==='bluetooth'){ if(!btChar) throw new Error('printer not connected'); const d=new Uint8Array(bytes); for(let i=0;i<d.length;i+=100){ const c=d.slice(i,i+100); if(btChar.properties.writeWithoutResponse) await btChar.writeValueWithoutResponse(c); else await btChar.writeValue(c); } return; }
+  throw new Error('raw printing needs a USB or Bluetooth printer');
+}
+function escposReceipt(lines){
+  const out=[0x1B,0x40];
+  lines.forEach(l=>{ [...String(l)].forEach(c=>{ const k=c.charCodeAt(0); out.push(k>=32&&k<=126?k:63); }); out.push(10); });
+  out.push(10,10,10,0x1D,0x56,0x42,0);
+  return out;
+}
+async function testPrint(){
+  try{ await sendRaw(escposReceipt(['MS BAG SHOP','TEST PRINT','Printer connected OK','--------------------------------',today()])); prnMsg('Test receipt sent'); }
+  catch(e){ prnMsg('Print failed: '+e.message); }
+}
+async function printReceipt(id){
+  const s=db.sales.find(x=>x.id===id); if(!s) return;
+  const C=db.settings;
+  const lines=[C.company,C.address,C.phone||'','--------------------------------','Invoice: '+s.no,'Date: '+s.d,'Customer: '+s.cust,'--------------------------------'];
+  s.items.forEach(i=>{ lines.push(i.name); lines.push(i.qty+' x '+money(i.price)+' = '+money(i.qty*i.price)); });
+  lines.push('--------------------------------','Subtotal: '+money(s.sub),'Discount: '+money(s.discAmt),'Tax: '+money(s.tax),'TOTAL: '+money(s.total),'Paid ('+s.pay+'): '+money(s.paid),'Due: '+money(s.due),'',C.footer||'');
+  try{ await sendRaw(escposReceipt(lines)); prnMsg('Receipt '+s.no+' sent'); }
+  catch(e){ prnMsg('Print failed: '+e.message); }
+}
+function pPrinters(){
+  const P=prn();
+  const opts=[['browser','Browser / PDF (any printer)'],['usb','USB thermal printer (Chrome or Edge)'],['bluetooth','Bluetooth thermal printer (Chrome on Android or Windows)'],['network','Network printer (needs local print bridge)']];
+  const recent=db.sales.filter(s=>visShops().includes(s.shop)).slice(-15).reverse();
+  return `<div class='card'><h3>Printer setup</h3>
+    <div class='fg'>
+      <div class='field'><label>Connection type</label><select onchange=\"setPrn('type',this.value)\">${opts.map(([v,t])=>`<option value='${v}' ${P.type===v?'selected':''}>${t}</option>`).join('')}</select></div>
+      <div class='field'><label>Paper width</label><select onchange=\"setPrn('width',this.value)\"><option value='58' ${P.width==='58'?'selected':''}>58 mm</option><option value='80' ${P.width==='80'?'selected':''}>80 mm</option></select></div>
+      <div class='field'><label>Printer IP (network only)</label><input value='${esc(P.ip||'')}' onchange=\"setPrn('ip',this.value)\" placeholder='192.168.1.50'></div>
+    </div>
+    <div class='acts' style='justify-content:flex-start'><button class='btn p' onclick='connectPrinter()'>Connect printer</button><button class='btn g' onclick='testPrint()'>Send test receipt</button></div>
+    <p class='mut' id='prnStatus'>Status: ${esc(P.status||'Not connected')}</p>
+    <p class='mut'>USB and Bluetooth printing need Chrome or Edge, a secure (https) page, and your approval of the device. Network printers cannot be reached directly from a web page. Test with your actual printer before relying on it.</p>
+  </div>
+  <div class='card'><h3>Print a receipt</h3>${tbl(['Invoice','Date','Customer','Total',''],recent.map(s=>[s.no,s.d,esc(s.cust),money(s.total),`<button class='btn s' onclick=\"printReceipt('${s.id}')\">Print</button>`]))}</div>`;
+}
+
+/* Roles & permissions (owner): create custom roles */
+function pRoles(){
+  const keys=['dash','search','pos','invoices','returns','customers','products','stock','ledger','transfers','adjust','count','suppliers','purchases','grn','reorder','prices','labels','accounts','expenses','pl','reports','ai','supply','forecast','analytics','performance','printers','settings'];
+  const cur=Object.keys(ROLES).filter(k=>k!=='owner').map(k=>[k,ROLES[k].name,(ROLES[k].pages||[]).map(p=>TITLES[p]||p).join(', ')]);
+  return `<div class='card'><h3>Roles</h3>${tbl(['Key','Name','Pages allowed'],cur)}<p class='mut'>Super Admin always has every page.</p></div>
+  <div class='card'><h3>Create custom role</h3>
+    <form onsubmit='return saveRole(event)'>
+      <div class='fg'><div class='field'><label>Role key (lowercase letters, e.g. sales_lead)</label><input name='key' required></div><div class='field'><label>Display name</label><input name='name' required></div></div>
+      <label>Pages allowed</label>
+      <div class='fg'>${keys.map(k=>`<label style='text-transform:none;font-size:13px;display:flex;gap:6px;align-items:center'><input type='checkbox' name='pg' value='${k}' style='width:auto'>${esc(TITLES[k]||k)}</label>`).join('')}</div>
+      <div class='acts'><button class='btn p'>Save role</button></div>
+    </form>
+  </div>`;
+}
+function saveRole(e){
+  e.preventDefault();
+  const fd=new FormData(e.target), key=fd.get('key').trim().toLowerCase(), name=fd.get('name').trim(), pages=fd.getAll('pg');
+  if(!/^[a-z_]+$/.test(key)) return fail('Role key: lowercase letters and underscores only');
+  if(key==='owner'||(ROLES[key]&&!(db.customRoles||[]).some(r=>r.key===key))) return fail('That role key is already used by a built-in role');
+  if(!name) return fail('Enter a display name');
+  if(!pages.length) return fail('Select at least one page');
+  db.customRoles=(db.customRoles||[]).filter(r=>r.key!==key).concat([{key,name,pages}]);
+  applyCustomRoles(); audit('Saved role '+key); save(); toast('Role saved'); refresh();
+  return false;
+}
+/* ===== v4 ADDITIONS (END) ===== */
+
+/* ================= RENDER MAP & BOOT ================= */
+const RENDER={supply:pSupply,forecast:pForecast,analytics:pAnalytics,performance:pPerformance,printers:pPrinters,roles:pRoles,search:pSearch,dash:pDash,ai:pAI,pos:pPOS,invoices:pInvoices,returns:pReturns,customers:pCustomers,products:pProductsRole,
+  stock:pStock,ledger:pLedger,transfers:pTransfers,adjust:pAdjust,count:pCount,suppliers:pSuppliers,purchases:pPurchases,
+  grn:pGRN,reorder:pReorder,prices:pPrices,labels:pLabels,accounts:pAccounts,expenses:pExpenses,pl:pPL,reports:pReports,settings:pSettings};
+
+load(); applyCustomRoles(); save();
+</script>
+</body>
+</html>
